@@ -1,0 +1,13 @@
+#ifndef RUFUM_CONFIG_H
+#define RUFUM_CONFIG_H
+
+#include <stdint.h>
+
+#define RUFUM_SIGNED_MIN ${RUFUM_SIGNED_MIN}
+#define RUFUM_SIGNED_MAX ${RUFUM_SIGNED_MAX}
+#define RUFUM_UNSIGNED_MAX ${RUFUM_UNSIGNED_MAX}
+
+typedef ${RUFUM_SIGNED} rufum_signed_t;
+typedef ${RUFUM_UNSIGNED} rufum_unsigned_t;
+
+#endif

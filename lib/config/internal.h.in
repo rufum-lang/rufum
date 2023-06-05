@@ -1,0 +1,19 @@
+#ifndef RUFUM_INTERNAL_H
+#define RUFUM_INTERNAL_H
+
+/*
+  This file is meant to be configured by cmake
+  PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR and PROJECT_VERSION_PATCH
+  are cmake variables set with a call to project(name VERSION some_version)
+  cmake sets these variables based on some_version
+*/
+
+/* Used by mete_get_version() */
+#define VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
+#define VERSION_MINOR ${PROJECT_VERSION_MINOR}
+#define VERSION_PATCH ${PROJECT_VERSION_PATCH}
+
+/* Used by mete_get_version_string() */
+#define VERSION_STRING #VERSION_MAJOR "." #VERSION_MINOR "." #VERSION_PATCH
+
+#endif
