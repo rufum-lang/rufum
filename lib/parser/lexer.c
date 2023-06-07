@@ -624,4 +624,25 @@ decimal_int_suffix:
 decimal_float:
     PROLOGUE
     EPILOGUE(TOK_DEC_FLT)
+
+
+/*
+  TODO Dummy states for number prefixes
+*/
+binary_prefix:
+    PROLOGUE
+    EPILOGUE(TOK_BIN_PREFIX)
+
+octal_prefix:
+    PROLOGUE
+    EPILOGUE(TOK_OCT_PREFIX)
+
+hexadecimal_prefix:
+    PROLOGUE
+    EPILOGUE(TOK_HEX_PREFIX)
+
+downcase:
+    PROLOGUE
+    TRANSITION_F(downcase, downcase)
+    EPILOGUE(TOK_DOWNCASE)
 }

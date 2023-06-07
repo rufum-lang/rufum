@@ -52,9 +52,15 @@ enum token
     /* Return keyword */
     //TOK_RETURN,
     /*
-      An identifier
+      A lowercase identifier
     */
-    TOK_IDENTIFIER,
+    TOK_DOWNCASE,
+    /*
+      Stray prefixes for binary, octal and hexadecimal numbers respectively
+    */
+    TOK_BIN_PREFIX,
+    TOK_OCT_PREFIX,
+    TOK_HEX_PREFIX,
     /*
       Decimal constant with no errors detected 
     */
