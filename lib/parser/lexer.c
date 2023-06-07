@@ -601,7 +601,7 @@ decimal_int_dot:
       However if we get another dot or comma then we have an invalid sequence
     */
     PROLOGUE
-    TRANSITION_S(decimal_float, decimal)
+    TRANSITION_F(decimal_float, decimal)
     TRANSITION_F(decimal_int_sequence, sequence)
     EPILOGUE(TOK_DEC_INT_DOT)
 
