@@ -1,3 +1,5 @@
+# INCLUDE_DIR is where we are looking for include files
+set (INCLUDE_DIRS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Collect information about all the .c files located in
 # directory this CMakeLists.txt resides in and its subdirectories

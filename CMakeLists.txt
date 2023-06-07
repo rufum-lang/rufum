@@ -63,10 +63,8 @@ endif ()
 
 # EXTERNAL_DIR is for header files that we are going to install
 # INTERNAL_DIR is for one header file that needs configuration
-# INCLUDE_DIR is where we are looking for include files
 set (EXTERNAL_DIR ${CMAKE_BINARY_DIR}/external)
 set (INTERNAL_DIR ${CMAKE_BINARY_DIR}/internal)
-set (INCLUDE_DIRS ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR})
 
 # Make directories for header files
 file (MAKE_DIRECTORY ${EXTERNAL_DIR})
