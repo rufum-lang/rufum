@@ -1,8 +1,13 @@
 
 #include "lexer.h"
 
-#include <stdbool.h>
+#include "lunit.h"
 
+#include <common/lstring.h>
+#include <common/status.h>
+
+#include <stdbool.h>
+#include <stdlib.h>
 /*
   These defines prevent us from having to pass the same
   argument twice over and over again
