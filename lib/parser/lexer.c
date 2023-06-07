@@ -428,7 +428,7 @@ static enum status append_to_lexme(lexme_info_t *lexme_info, char c)
     /*
       Append the character incrementing the index member
     */
-    lemxe_info->text[lexme_info->index] = c;
+    lexme_info->text[lexme_info->index] = c;
     lexme_info->index += 1;
 
     return OK;
