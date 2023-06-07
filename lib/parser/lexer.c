@@ -535,10 +535,6 @@ lunit_t *rufum_get_lunit(source_t *source)
     {
         switch (c)
         {
-            case 'p':
-                goto matched_p;
-            case 'r':
-                goto matched_r;
             default:
                 goto downcase;
         }
