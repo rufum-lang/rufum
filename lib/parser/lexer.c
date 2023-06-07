@@ -125,7 +125,7 @@ matched_##matched:              \
 
 struct lexme_info
 {
-    char *lexme;
+    char *text;
     size_t line;
     size_t column;
     size_t index;
