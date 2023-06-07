@@ -103,11 +103,13 @@ enum token
 /* next field is set to NULL by lexer; it is used by parser */
 struct lunit
 {
-    struct lunit *next;
-    struct lstring *lexme;
+    lunit_t *next;
+    lstring_t *lexme;
     size_t line;
     size_t column;
     enum token token;
 };
+
+typedef struct lunit lunit_t;
 
 #endif
