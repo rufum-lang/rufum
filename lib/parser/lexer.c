@@ -569,8 +569,8 @@ initial_zero:
     */
     PROLOGUE
     TRANSITION_F(decimal_int, decimal)
-    TRANSITION_S(decimal_dot, '.')
-    TRANSITION_S(decimal_comma, ',')
+    TRANSITION_S(decimal_int_dot, '.')
+    TRANSITION_S(decimal_int_comma, ',')
     TRANSITION_S(binary_prefix, 'b')
     TRANSITION_S(octal_prefix, 'o')
     TRANSITION_S(hexadecimal_prefix, 'x')
