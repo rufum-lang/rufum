@@ -1,6 +1,11 @@
 cmake_minimum_required (VERSION 3.10)
 
-project (rufum VERSION 0.0.0)
+project (rufum VERSION 0.0.0 LANGUAGES C)
+
+# We are using C99 with extensions disabled
+set (CMAKE_C_STANDARD 99)
+set (CMAKE_C_STANDARD_REQUIRED ON)
+set (CMAKE_C_EXTENSIONS OFF)
 
 # Descriptions for some options
 # They are long and this is why thay are here
