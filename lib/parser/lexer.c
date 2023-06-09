@@ -121,43 +121,23 @@
         return LEXER_MEMORY_ERROR;
 
 /*
-  TODO Update this comment
   STATE_* macros implement a finite state machine
   Search the web if you don't know what this means
-  Different states are represented by labels and
-  transition between them is done with a goto instruction
 
   Number in a macro name defines how many transitions
-  other than the default one state can support
+  other than the default one this state can support
   From now on this number will be called N
   There are N+1 transitions in a STATE_N macro
-  because there is a default transition to ident state
-  This state (ident) represents an identifier
+  because there is a default transition to lowercase state
+  This state (lowercasse) represents a lowercase identifier
   If macro's name ends with F it is a final state
-  that accepts something other than TOK_IDENTIFIER
+  that accepts something other than TOK_LOWERCASE
 
   In all macros first parameter is name of a state
   Following N parameters are characters to be compared to the current char
   If the comparison returns true then a transition to associated state occurs
   Associated state for char c is matched_##current_state##c
   End macros have additional parameter: type of token to return
-
-  Operations that STATE_* macros perform
-  epilogue:
-    it appends input of previous state to the lexme
-    Example: lexme_append(&lexme_info, c);
-  prologue:
-    it retrives one character from the source
-    Example: rufum_get(source);
-  transitions:
-    each transiton is represented by one if/goto statement
-    Example: goto matched_##matched##char_a;
-  finish or accept:
-    it it represented by return keyword, name is self-explanatory
-    Example: return lunit_create(&lexme_info, TOK_PROCEDURE);
-
-  Note that first state isn't a macro and has to be written by hand
-  It is a switch statement that transfers control to one of these macros
 */ 
 #define STATE_1(matched, char_a)         \
 matched_##matched:                       \
