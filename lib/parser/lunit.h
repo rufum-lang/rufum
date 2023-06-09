@@ -1,5 +1,5 @@
-#ifndef _LEXER_LUNIT_H_
-#define _LEXER_LUNIT_H_
+#ifndef RUFUM_PARSER_LUNIT_H
+#define RUFUM_PARSER_LUNIT_H
 
 #include <stddef.h>
 

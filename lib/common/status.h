@@ -1,5 +1,5 @@
-#ifndef RUFUM_STATUS_H
-#define RUFUM_STATUS_H
+#ifndef RUFUM_COMMON_STATUS_H
+#define RUFUM_COMMON_STATUS_H
 
 typedef enum
 {

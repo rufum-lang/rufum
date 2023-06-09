@@ -1,5 +1,5 @@
-#ifndef RUFUM_LEXER_LERROR_H
-#define RUFUM_LEXER_LERROR_H
+#ifndef RUFUM_PARSER_LSTATUS_H
+#define RUFUM_PARSER_LSTATUS_H
 
 enum lexer_status
 {
