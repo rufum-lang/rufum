@@ -4,10 +4,20 @@ set (INCLUDE_DIRS ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 # Collect information about all the .c files located in
 # directory this CMakeLists.txt resides in and its subdirectories
 file (GLOB_RECURSE SOURCE_FILES *.c)
+
+# Files with extension .i.c aren't meant to be compiled
+# but to be included in other C files
+# They aren't header files, they contain actual C code
+# They use .c extension for syntax highlighting
+list (FILTER SOURCE_FILES EXCLUDE REGEX ".i.c$")
+
+message (STATUS ${SOURCE_FILES})
+
+# Header files to be installed
 file (GLOB HEADER_FILES headers/*.h)
 
 # Variables RUFUM_BUILD_* and STATIC_LIB_NO_INSTALL
-# come from paret CMakeLists.txt
+# come from parent CMakeLists.txt
 
 if (${RUFUM_BUILD_MODULE})
 	add_library (rufum-module MODULE ${SOURCE_FILES})
