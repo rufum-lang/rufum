@@ -52,9 +52,10 @@ enum token
     /* Return keyword */
     //TOK_RETURN,
     /*
-      A lowercase identifier
+      Identifiers, buth lowercase and uppercase
     */
     TOK_LOWERCASE,
+    TOK_UPPERCASE,
     /*
       Stray prefixes for binary, octal and hexadecimal numbers respectively
     */

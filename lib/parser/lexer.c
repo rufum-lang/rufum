@@ -523,24 +523,25 @@ lstatus_t rufum_get_lunit(lunit_t **lunit_ptr, source_t *source)
         
 
     /*
-      Neither this if statement nor this switch represent a state
-      Their task is to move to an appropriate state, nothing more
+      Handle keywords and lowercase identifiers
     */
-    if (test_char_lowercase(c))
-    {
-        switch (c)
-        {
-            default:
-                goto lowercase;
-        }
-    }
+    TRANSITION_C(lowercase, lowercase)
 
-    if (c == '0')
-        goto initial_zero;
+    /*
+      Handle uppercase identifiers
+    */
+    TRANSITION_C(uppercase, uppercase)
 
-    if (test_char_decimal(c))
-        goto decimal_int;
+    /*
+      Handle numbers, zero is a standalone state bacause it
+      can form prefix of binary, octal and hexadecimal numbers
+    */
+    TRANSITION_S(initial_zero, '0')
+    TRANSITION_C(decimal_int, decimal)
 
+    /*
+      Handle end of line
+    */
     if (c == '\n')
     {
         lunit = create_lunit(&lexme_info, TOK_EOL);
@@ -552,6 +553,9 @@ lstatus_t rufum_get_lunit(lunit_t **lunit_ptr, source_t *source)
         return LEXER_OK;
     }
 
+    /*
+      Handle end of input
+    */
     if (c == SOURCE_END)
     {
         lunit = create_lunit(&lexme_info, TOK_END);
@@ -563,6 +567,9 @@ lstatus_t rufum_get_lunit(lunit_t **lunit_ptr, source_t *source)
         return LEXER_OK;
     }
 
+    /*
+      Handle unknown entity
+    */
     lunit = create_lunit(&lexme_info, TOK_UNKNOWN);
 
     if (lunit == NULL)
@@ -619,4 +626,9 @@ lowercase:
     PROLOGUE
     TRANSITION_C(lowercase, lowercase)
     EPILOGUE(TOK_LOWERCASE)
+
+uppercase:
+    PROLOGUE
+    TRANSITION_C(uppercase, uppercase)
+    EPILOGUE(TOK_UPPERCASE)
 }
