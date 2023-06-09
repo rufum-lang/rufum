@@ -62,33 +62,83 @@ enum token
     TOK_OCT_PREFIX,
     TOK_HEX_PREFIX,
     /*
-      Decimal constant with no errors detected 
+      Integers with no errors detected 
     */
+    TOK_BIN_INT,
+    TOK_OCT_INT,
     TOK_DEC_INT,
+    TOK_HEX_INT,
     /*
-      Decimal constant with dat at the end, eg. "10."
+      Integer constant with dot at the end, eg. "10."
     */
+    TOK_BIN_INT_DOT,
+    TOK_OCT_INT_DOT,
     TOK_DEC_INT_DOT,
+    TOK_HEX_INT_DOT,
     /*
-      Decimal constant with a comma at the end, eg. "12,345,"
+      Integer constant with a comma at the end, eg. "12,345,"
       COM stands for comma
     */
+    TOK_BIN_INT_COM,
+    TOK_OCT_INT_COM,
     TOK_DEC_INT_COM,
+    TOK_HEX_INT_COM,
     /*
-      Decimal constant that has a dot or a comma
+      Integer constant that has a dot or a comma
       followed by another dot or a comma, eg. "123..1"
       SEQ stands for sequence
     */
+    TOK_BIN_INT_SEQ,
+    TOK_OCT_INT_SEQ,
     TOK_DEC_INT_SEQ,
+    TOK_HEX_INT_SEQ,
     /*
-      A decimal constant followed by invalid characters, eg. "123g"
+      Integer constant followed by invalid characters, eg. "123g"
       Here 'g' is the suffix, SUF stands for suffix
     */
+    TOK_BIN_INT_SUF,
+    TOK_OCT_INT_SUF,
     TOK_DEC_INT_SUF,
+    TOK_HEX_INT_SUF,
     /*
-      A decimal floating point number
+      Floating point constant with no errors detected
     */
+    TOK_BIN_FLT,
+    TOK_OCT_FLT,
     TOK_DEC_FLT,
+    TOK_HEX_FLT,
+    /*
+      Floating point constant with two or more dots, eg. "127.0.0.1"
+    */
+    TOK_BIN_FLT_DOT,
+    TOK_OCT_FLT_DOT,
+    TOK_DEC_FLT_DOT,
+    TOK_HEX_FLT_DOT,
+    /*
+      Floating point constant with a comma at the end, eg. "12.345,"
+      COM stands for comma
+    */
+    TOK_BIN_FLT_COM,
+    TOK_OCT_FLT_COM,
+    TOK_DEC_FLT_COM,
+    TOK_HEX_FLT_COM,
+    /*
+      Floating point constant that has a dot or a comma
+      followed by another dot or a comma, eg. "0.123.,1"
+      SEQ stands for sequence
+    */
+    TOK_BIN_FLT_SEQ,
+    TOK_OCT_FLT_SEQ,
+    TOK_DEC_FLT_SEQ,
+    TOK_HEX_FLT_SEQ,
+    /*
+      Floating point constant followed by invalid characters, 
+      Example: "0x0.abcdefg", Here 'g' is the suffix, SUF stands for suffix
+    */
+    TOK_BIN_FLT_SUF,
+    TOK_OCT_FLT_SUF,
+    TOK_DEC_FLT_SUF,
+    TOK_HEX_FLT_SUF,
     /*
       End of line and end of source
     */

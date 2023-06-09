@@ -121,7 +121,7 @@
         return LEXER_MEMORY_ERROR;
 
 /*
-  STATE_* macros implement a finite state machine
+  STATE_ID_* macros implement a finite state machine
   Search the web if you don't know what this means
 
   Number in a macro name defines how many transitions
@@ -139,14 +139,14 @@
   Associated state for char c is matched_##current_state##c
   End macros have additional parameter: type of token to return
 */ 
-#define STATE_1(matched, char_a)         \
+#define STATE_ID_1(matched, char_a)         \
 matched_##matched:                       \
     PROLOGUE                             \
     TRANSITION_M(matched, char_a)        \
     TRANSITION_C(lowercase, following)   \
     EPILOGUE(TOK_ID)
 
-#define STATE_2(matched, char_a, char_b) \
+#define STATE_ID_2(matched, char_a, char_b) \
 matched_##matched:                       \
     PROLOGUE                             \
     TRANSITION_M(matched, char_a)        \
@@ -154,11 +154,164 @@ matched_##matched:                       \
     TRANSITION_C(lowercase, following)   \
     EPILOGUE(TOK_ID)
 
-#define STATE_F(matched, token)        \
+#define STATE_ID_F(matched, token)        \
 matched_##matched:                     \
     PROLOGUE                           \
     TRANSITION_C(lowercase, following) \
     EPILOGUE(token)
+
+#define TOKEN_INT_binary TOK_BIN_INT
+#define TOKEN_INT_octal TOK_OCT_INT
+#define TOKEN_INT_decimal TOK_DEC_INT
+#define TOKEN_INT_hexadecimal TOK_HEX_INT
+
+#define TOKEN_INT_DOT_binary TOK_BIN_INT_DOT
+#define TOKEN_INT_DOT_octal TOK_OCT_INT_DOT
+#define TOKEN_INT_DOT_decimal TOK_DEC_INT_DOT
+#define TOKEN_INT_DOT_hexadecimal TOK_HEX_INT_DOT
+
+#define TOKEN_INT_COM_binary TOK_BIN_INT_COM
+#define TOKEN_INT_COM_octal TOK_OCT_INT_COM
+#define TOKEN_INT_COM_decimal TOK_DEC_INT_COM
+#define TOKEN_INT_COM_hexadecimal TOK_HEX_INT_COM
+
+#define TOKEN_INT_SEQ_binary TOK_BIN_INT_SEQ
+#define TOKEN_INT_SEQ_octal TOK_OCT_INT_SEQ
+#define TOKEN_INT_SEQ_decimal TOK_DEC_INT_SEQ
+#define TOKEN_INT_SEQ_hexadecimal TOK_HEX_INT_SEQ
+
+#define TOKEN_INT_SUF_binary TOK_BIN_INT_SUF
+#define TOKEN_INT_SUF_octal TOK_OCT_INT_SUF
+#define TOKEN_INT_SUF_decimal TOK_DEC_INT_SUF
+#define TOKEN_INT_SUF_hexadecimal TOK_HEX_INT_SUF
+
+/*
+  Following macros rely heavily on functions
+  found in file categories.i.c included leter in this file
+*/
+
+/*
+  Previous character was a digit but it is possible
+  we have read one or more commas before that
+  Following sequences of characters can lead here:
+  '1', '2' ... '9', '369', '12,12', '0,3', '032' etc.
+  Zero does not belong here, however this doesn't mean
+  numbers starting with zero do not belong here
+*/
+#define STATE_INT(system)                              \
+system##_int:                                          \
+    PROLOGUE                                           \
+    TRANSITION_C(system##_int, system)                 \
+    TRANSITION_S(system##_int_dot, '.')                \
+    TRANSITION_S(system##_int_comma, ',')              \
+    TRANSITION_C(system##_int_suffix, system##_suffix) \
+    EPILOGUE(TOKEN_INT_##system)
+
+/*
+  We have encountered a dot after sequence of digits and optionally
+  one or more commas, previous character was a digit though
+  If we encounter a digit then we have a float
+  Example: We just got '0' after "1." which gives us "1.0"
+  However if we get another dot or comma then we have an invalid sequence
+*/
+#define STATE_INT_DOT(system)                     \
+system##_int_dot:                                 \
+    PROLOGUE                                      \
+    TRANSITION_C(system##_float, system)          \
+    TRANSITION_C(system##_int_sequence, sequence) \
+    EPILOGUE(TOKEN_INT_DOT_##system)
+
+#define STATE_INT_COMMA(system)                   \
+system##_int_comma:                               \
+    PROLOGUE                                      \
+    TRANSITION_C(system##_int, system)            \
+    TRANSITION_C(system##_int_sequence, sequence) \
+    EPILOGUE(TOKEN_INT_COM_##system)
+
+#define STATE_INT_SEQUENCE(system)                 \
+system##_int_sequence:                             \
+    PROLOGUE                                       \
+    TRANSITION_C(system##_int_sequence, following) \
+    EPILOGUE(TOKEN_INT_SEQ_##system)
+
+#define STATE_INT_SUFFIX(system)                 \
+system##_int_suffix:                             \
+    PROLOGUE                                     \
+    TRANSITION_C(system##_int_suffix, following) \
+    EPILOGUE(TOKEN_INT_SUF_##system)
+
+#define INTEGER_STATES(system) \
+    STATE_INT(system)          \
+    STATE_INT_DOT(system)      \
+    STATE_INT_COMMA(system)    \
+    STATE_INT_SEQUENCE(system) \
+    STATE_INT_SUFFIX(system)
+
+#define TOKEN_FLT_binary TOK_BIN_FLT
+#define TOKEN_FLT_octal TOK_OCT_FLT
+#define TOKEN_FLT_decimal TOK_DEC_FLT
+#define TOKEN_FLT_hexadecimal TOK_HEX_FLT
+
+#define TOKEN_FLT_DOT_binary TOK_BIN_FLT_DOT
+#define TOKEN_FLT_DOT_octal TOK_OCT_FLT_DOT
+#define TOKEN_FLT_DOT_decimal TOK_DEC_FLT_DOT
+#define TOKEN_FLT_DOT_hexadecimal TOK_HEX_FLT_DOT
+
+#define TOKEN_FLT_COM_binary TOK_BIN_FLT_COM
+#define TOKEN_FLT_COM_octal TOK_OCT_FLT_COM
+#define TOKEN_FLT_COM_decimal TOK_DEC_FLT_COM
+#define TOKEN_FLT_COM_hexadecimal TOK_HEX_FLT_COM
+
+#define TOKEN_FLT_SEQ_binary TOK_BIN_FLT_SEQ
+#define TOKEN_FLT_SEQ_octal TOK_OCT_FLT_SEQ
+#define TOKEN_FLT_SEQ_decimal TOK_DEC_FLT_SEQ
+#define TOKEN_FLT_SEQ_hexadecimal TOK_HEX_FLT_SEQ
+
+#define TOKEN_FLT_SUF_binary TOK_BIN_FLT_SUF
+#define TOKEN_FLT_SUF_octal TOK_OCT_FLT_SUF
+#define TOKEN_FLT_SUF_decimal TOK_DEC_FLT_SUF
+#define TOKEN_FLT_SUF_hexadecimal TOK_HEX_FLT_SUF
+
+#define STATE_FLOAT(system)                              \
+system##_float:                                          \
+    PROLOGUE                                             \
+    TRANSITION_C(system##_float, system)                 \
+    TRANSITION_S(system##_float_dot, '.')                \
+    TRANSITION_S(system##_float_comma, ',')              \
+    TRANSITION_C(system##_float_suffix, system##_suffix) \
+    EPILOGUE(TOKEN_FLT_##system)
+
+#define STATE_FLOAT_DOT(system)                 \
+system##_float_dot:                             \
+    PROLOGUE                                    \
+    TRANSITION_C(system##_float_dot, following) \
+    EPILOGUE(TOKEN_FLT_DOT_##system)
+
+#define STATE_FLOAT_COMMA(system)                   \
+system##_float_comma:                               \
+    PROLOGUE                                        \
+    TRANSITION_C(system##_float, system)            \
+    TRANSITION_C(system##_float_sequence, sequence) \
+    EPILOGUE(TOKEN_FLT_COM_##system)
+
+#define STATE_FLOAT_SEQUENCE(system)                 \
+system##_float_sequence:                             \
+    PROLOGUE                                         \
+    TRANSITION_C(system##_float_sequence, following) \
+    EPILOGUE(TOKEN_FLT_SEQ_##system)
+
+#define STATE_FLOAT_SUFFIX(system)                 \
+system##_float_suffix:                             \
+    PROLOGUE                                       \
+    TRANSITION_C(system##_float_suffix, following) \
+    EPILOGUE(TOKEN_FLT_SUF_##system)
+
+#define FLOAT_STATES(system)     \
+    STATE_FLOAT(system)          \
+    STATE_FLOAT_DOT(system)      \
+    STATE_FLOAT_COMMA(system)    \
+    STATE_FLOAT_SEQUENCE(system) \
+    STATE_FLOAT_SUFFIX(system)
 
 // TODO move it to config file
 #define LEXME_ALLOCATION_STEP 32
@@ -434,70 +587,33 @@ initial_zero:
     TRANSITION_S(hexadecimal_prefix, 'x')
     EPILOGUE(TOK_DEC_INT)
 
-decimal_int:
-    /*
-      Previous character was a digit but it is possible
-      we have read one or more commas before that
-      Following sequences of characters can lead here:
-      '1', '2' ... '9', '369', '12,12', '0,3', '032' etc.
-      Zero does not belong here, however this doesn't mean
-      numbers starting with zero do not belong here
-    */
-    PROLOGUE
-    TRANSITION_C(decimal_int, decimal)
-    TRANSITION_S(decimal_int_dot, '.')
-    TRANSITION_S(decimal_int_comma, ',')
-    TRANSITION_C(decimal_int_suffix, decimal_suffix)
-    EPILOGUE(TOK_DEC_INT)
-
-decimal_int_dot:
-    /*
-      We have encountered a dot after sequence of digits and optionally
-      one or more commas, previous character was a digit though
-      If we encounter a digit then we have a float
-      Example: We just got '0' after "1." which gives us "1.0"
-      However if we get another dot or comma then we have an invalid sequence
-    */
-    PROLOGUE
-    TRANSITION_C(decimal_float, decimal)
-    TRANSITION_C(decimal_int_sequence, sequence)
-    EPILOGUE(TOK_DEC_INT_DOT)
-
-decimal_int_comma:
-    PROLOGUE
-    TRANSITION_C(decimal_int, decimal)
-    TRANSITION_C(decimal_int_sequence, sequence)
-    EPILOGUE(TOK_DEC_INT_COM)
-
-decimal_int_sequence:
-    PROLOGUE
-    TRANSITION_C(decimal_int_sequence, following)
-    EPILOGUE(TOK_DEC_INT_SEQ)
-
-decimal_int_suffix:
-    PROLOGUE
-    TRANSITION_C(decimal_int_suffix, following)
-    EPILOGUE(TOK_DEC_INT_SUF)
-
-decimal_float:
-    PROLOGUE
-    EPILOGUE(TOK_DEC_FLT)
-
-
-/*
-  TODO Dummy states for number prefixes
-*/
 binary_prefix:
     PROLOGUE
-    EPILOGUE(TOK_BIN_PREFIX)
+    TRANSITION_C(binary_int, binary)
+    EPILOGUE(TOK_DEC_INT_SUF)
 
 octal_prefix:
     PROLOGUE
-    EPILOGUE(TOK_OCT_PREFIX)
+    TRANSITION_C(octal_int, octal)
+    EPILOGUE(TOK_DEC_INT_SUF)
 
 hexadecimal_prefix:
     PROLOGUE
-    EPILOGUE(TOK_HEX_PREFIX)
+    TRANSITION_C(hexadecimal_int, hexadecimal)
+    EPILOGUE(TOK_DEC_INT_SUF)
+
+    /*
+      These macros expand to multiple states
+      responsible for scanning numbers
+    */
+    INTEGER_STATES(binary)
+    INTEGER_STATES(octal)
+    INTEGER_STATES(decimal)
+    INTEGER_STATES(hexadecimal)
+    FLOAT_STATES(binary)
+    FLOAT_STATES(octal)
+    FLOAT_STATES(decimal)
+    FLOAT_STATES(hexadecimal)
 
 lowercase:
     PROLOGUE
