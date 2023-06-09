@@ -1,9 +1,11 @@
 
 #include "lexer.h"
 
+#include "lstatus.h"
 #include "lunit.h"
 
 #include <common/lstring.h>
+#include <common/memory.h>
 #include <common/status.h>
 
 #include <stdbool.h>
@@ -41,27 +43,85 @@
 #define _TO_CHAR_y 'y'
 #define _TO_CHAR_z 'z'
 
-#define PROLOGUE                     \
-    append_to_lexme(&lexme_info, c); \
-    c = rufum_get_char(source);
+/*
+  This is the action that is the first thing that
+  is done when transition occurs to a given state
+  First we append character that lead us to this state
+  to the lexme and then we read next character
+  We could move the call to append_to_lexme to
+  TRANSITION_* functions but that would mean that
+  there are N calls to this function per state
+  with N transitions. This way there is only one
+  Also we must not forget to free lexme_info.text on failure
+*/
+#define PROLOGUE                             \
+    error = append_to_lexme(&lexme_info, c); \
+    if (error != LEXER_OK)                   \
+    {                                        \
+        free(lexme_info.text);               \
+        return error;                        \
+    }                                        \
+    error = rufum_get_char(source, &c);      \
+    if (error != LEXER_OK)                   \
+    {                                        \
+        free(lexme_info.text);               \
+        return error;                        \
+    }
 
+/*
+  A macro that implements a transition to a target
+  if current character is char_a. S stands for signle
+*/
 #define TRANSITION_S(target, char_a) \
-    if (c == char_a)               \
+    if (c == char_a)                 \
         goto target;
 
+/*
+  A transition used by STATE_* macros. M stands for macro
+  The transition is done if current character is char_suffix
+  However this character isn't a char, that is it is missing quotes
+  To convert it to an actual character we are using _TO_CHAR_* macros
+  It is done this way so that we can write STATE_3(matched, a, b, c)
+  instead of STATE_3(matched, a, 'a', b, 'b', c, 'c')
+  Example: TRANSITION_M(retur, n)
+    This transfers control to matched_return label
+    if current character is 's'
+*/
 #define TRANSITION_M(matched, char_suffix) \
     if (c == _TO_CHAR_##char_suffix)       \
-        goto matched_##matched##target_suffix;
+        goto matched_##matched##char_suffix;
 
-#define TRANSITION_F(target, function_suffix) \
+/*
+  This transition is a variation of TRANSITION_S
+  It works similary except instead of comparing current character
+  to a single character it compares it to a categery of characters
+  Each category ${category} has a test_char_${category} function
+  that checks if given character belongs to this it
+  Capital C in macro name stands for category
+*/
+#define TRANSITION_C(target, function_suffix) \
     if (c == test_char_##function_suffix(c))  \
         goto target;
 
-#define EPILOGUE(token)            \
-    rufum_unget_char(source, c); \
-    return create_lunit(&lexme_info, token);
+/*
+  This macro represents accept action of finite state machine
+  If rufum_unget_char fails we must free lexme_info.text
+  to prevent memory leaks. When create_lunit fails
+  it frees lexme_info.text so we don't have to do it here
+*/
+#define EPILOGUE(token)                       \
+    error = rufum_unget_char(source, c);      \
+    if (error != LEXER_OK)                    \
+    {                                         \
+        free(lexme_info.text);                \
+        return error;                         \
+    }                                         \
+    lunit = create_lunit(&lexme_info, token); \
+    if (lunit == NULL)                        \
+        return LEXER_MEMORY_ERROR;
 
 /*
+  TODO Update this comment
   STATE_* macros implement a finite state machine
   Search the web if you don't know what this means
   Different states are represented by labels and
@@ -99,11 +159,11 @@
   Note that first state isn't a macro and has to be written by hand
   It is a switch statement that transfers control to one of these macros
 */ 
-#define STATE_1(matched, char_a)  \
-matched_##matched:                \
-    PROLOGUE                      \
-    TRANSITION_M(matched, char_a) \
-    TRANSITION_F(id, following)   \
+#define STATE_1(matched, char_a)         \
+matched_##matched:                       \
+    PROLOGUE                             \
+    TRANSITION_M(matched, char_a)        \
+    TRANSITION_C(lowercase, following)   \
     EPILOGUE(TOK_ID)
 
 #define STATE_2(matched, char_a, char_b) \
@@ -111,13 +171,13 @@ matched_##matched:                       \
     PROLOGUE                             \
     TRANSITION_M(matched, char_a)        \
     TRANSITION_M(matched, char_b)        \
-    TRANSITION_F(id, following)          \
+    TRANSITION_C(lowercase, following)   \
     EPILOGUE(TOK_ID)
 
-#define STATE_F(matched, token) \
-matched_##matched:              \
-    PROLOGUE                    \
-    TRANSITION_F(id, following) \
+#define STATE_F(matched, token)        \
+matched_##matched:                     \
+    PROLOGUE                           \
+    TRANSITION_C(lowercase, following) \
     EPILOGUE(token)
 
 // TODO move it to config file
@@ -134,35 +194,59 @@ struct lexme_info
 
 typedef struct lexme_info lexme_info_t;
 
-static inline int skip_comment(source_t *source)
+/*
+  There are four functions that use these macros
+  skip, skip_comment, skip_multiline_comment and try_skip_newline
+  TODO Should we undefine them when no longer needed?
+*/
+
+#define GET_CHAR                        \
+    error = rufum_get_char(source, &c); \
+    if (error != LEXER_OK)              \
+        return error;
+
+#define UNGET_CHAR(c) \
+    error = rufum_unget_char(source, c); \
+    if (error != LEXER_OK);              \
+        return error;
+
+static lstatus_t skip_comment(source_t *source)
 {
+    lstatus_t error;
     int c;
 
     /*
-      Eat up chars until EOL/EOF
+      Eat up chars until EOL/SOURCE_END
     */
     while (true)
     {
+        /*
+          Attempt to read one character
+          If rufum_get_char fails pass the error to the caller
+        */
+        GET_CHAR
 
-        c = rufum_get_char(source);
+        /*
+          Newline? This means we succesfully skipped a comment
+          We just should unread it and we are done
+          Result of this call is the return value
+        */
+        if (c == '\n')
+            return rufum_unget_char(source, c);
 
-        // TODO
-        if (c < 0);
-
-        if (c == '\n' || c == SOURCE_END)
-            break;
+        /*
+          We reached the end while skipping the comment
+          This means that the last line isn't terminated my EOL
+          Report it to the caller
+        */
+        if (c == SOURCE_END)
+            return LEXER_BAD_COMMENT;
     }
-
-    /*
-      Unread newline/SOURCE_END
-    */
-    rufum_unget_char(source, c);
-
-    return;
 }
 
-static inline enum status skip_multiline_comment(source_t *source)
+static lstatus_t skip_multiline_comment(source_t *source)
 {
+    lstatus_t error;
     size_t depth;
     int c;
 
@@ -180,25 +264,38 @@ static inline enum status skip_multiline_comment(source_t *source)
     */
     while (true)
     {
-        c = rufum_get_char(source);
+        /*
+          Attempt to read one character, on failure return the error
+        */
+        GET_CHAR
 
+        /*
+          If this is the end then we report failure
+        */
         if (c == SOURCE_END)
-            return FAILURE;
-            
+            return LEXER_BAD_MULTILINE_COMMENT;
+        
+        /*
+          Modify depth if we enter/leave a multiline comment
+        */
         if (c == '{')
             depth += 1;
         else if (c == '}')
             depth -= 1;
 
+        /*
+          Return once we leave the initial comment
+        */
         if (depth == 0)
-            return OK;
+            return LEXER_OK;
     }
 }
 
-static inline enum status try_skip_newline(source_t *source)
+static lstatus_t try_skip_newline(source_t *source, bool *skipped)
 {
-    size_t space_count;
+    lstatus_t error;
     int c;
+    size_t space_count;
 
     /*
       Our task is to skip following sequence: '\n *\\' (regexp)
@@ -211,7 +308,7 @@ static inline enum status try_skip_newline(source_t *source)
 
     while (true)
     {
-        c = rufum_get_char(source);
+        GET_CHAR
 
         if (c != ' ')
             break;
@@ -224,7 +321,10 @@ static inline enum status try_skip_newline(source_t *source)
       Report that we successfully skipped EOL
     */
     if (c == '\\')
-        return SUCCESS;
+    {
+        *skipped = true;
+        return LEXER_OK;
+    }
 
     /*
       We encountered something else, we have to unread everything
@@ -233,83 +333,138 @@ static inline enum status try_skip_newline(source_t *source)
       If it turns out that it isn't we need to revert to previous state
       This means unreading that character and spaces it was preceeded by
       This also means unreading that newline we read in skip()
-      before we got called, finally report a failure
-      Note: failure doesn't mean error, it means that
-      we failed to skip a newline
+      before we got called, finally report we failed to skip newline
     */
-    size_t iter = space_count;
 
-    rufum_unget_char(c);
+    UNGET_CHAR(c)
 
-    while (iter != 0)
-    {
-        rufum_unget_char(' ');
-        iter -= 1;
-    }
+    for (size_t iter = space_count; iter != 0; --iter)
+        UNGET_CHAR(' ')
 
-    rufum_unget_char('\n');
+    UNGET_CHAR('\n')
 
-    return FAILURE;
+    *skipped = false;
+    return LEXER_OK;
 }
 
-static inline enum status skip(source_t *source, size_t *line_ptr,
-    size_t *column_ptr)
+static lstatus_t skip(source_t *source, lexme_info_t *lexme_info)
 {
     while (true)
     {
-        int c;
+        lstatus_t error;
         size_t line;
         size_t column;
+        int c;
+        bool skipped;
 
         /*
           Save position of first character of... something
-          It matters only if this something is a multiline comment
-          However we can query position of a character
-          before we read it not after, this is why we do it now
+          It matters only if this something is a comment
+          We can query position of a character before
+          we read it not after, this is why we do it now
           Line and column numbers will be used for diagnostics
         */
         line = rufum_get_line(source);
         column = rufum_get_column(source);
 
-        c = rufum_get_char(source);
+        /*
+          Read one character, return error indicator on failure
+        */
+        GET_CHAR
 
         /*
           Skip spaces, comments and escaped newlines
-          skip_multiline_comment can fail if it encounters
-          a comment that spans all the way to EOF
-          TODO rufum_get_char can fail
+          Functions skip_comment, skip_multiline_comment and try_skip_newline
+          set variable error to indicate success or failure
         */
         switch (c)
         {
             case ' ':
                 continue;
             case '#':
-                skip_comment(source);
+                error = skip_comment(source);
+
+                /*
+                  This is a special case where we save position of '#'
+                  and tell the lexer that we encountered a comment
+                  that was followed by SOURCE_END and not a newline
+                */
+                if (error == LEXER_BAD_COMMENT)
+                {
+                    lexme_info->line = line;
+                    lexme_info->column = column;
+
+                    return error;
+                }
+
+                /*
+                  Simply fail if there was any other error
+                */
+                if (error != LEXER_OK)
+                    return error;
+
                 continue;
             case '{':
-                if (skip_multiline_comment(source) == FAILURE)
-                {
-                    *line_ptr = line;
-                    *column_ptr = column;
+                error = skip_multiline_comment(source);
 
-                    return;
+                /*
+                  This is true if we encountered unterminated comment
+                  We should tell the user where this comment started
+                  Hence we save its position
+                */
+                if (error == LEXER_BAD_MULTILINE_COMMENT)
+                {
+                    lexme_info->line = line;
+                    lexme_info->column = column;
+
+                    return error;
                 }
+
+                /*
+                  Simply fail if there was any other error
+                */
+                if (error != LEXER_OK)
+                    return error;
+
                 continue;
             case '\n':
-                if (try_skip_newline(source) == SUCCESS)
+                error = try_skip_newline(source, &skipped);
+
+                /*
+                  Fail on any error
+                */
+                if (error != LEXER_OK)
+                    return error;
+
+                /*
+                  If try_skip_newline has set skipped to false then we
+                  are positioned at the very newline we encountered earlier
+                  Hence without this we would enter infinite loop on newline
+                  As we would match this case statement again
+                  We do not unread anything, this was done by try_skip_error()
+                */
+                if (skipped == false)
+                    return LEXER_OK;
+                else
                     continue;
         }
 
-        return OK;
+        /*
+          Case statement didn't match anything, this is something else
+          Unread this character and stop
+        */
+        UNGET_CHAR(c)
+
+        return LEXER_OK;
     }
 }
 
-static inline bool test_char_downcase(int c)
+static inline bool test_char_lowercase(int c)
 {
     return c >= 'a' && c <= 'z';
 }
 
-static inline bool test_char_upcase(int c)
+static inline bool test_char_uppercase(int c)
 {
     return c >= 'A' && c <= 'Z';
 }
@@ -343,7 +498,7 @@ static inline bool test_char_binary_suffix(int c)
 {
     bool rv;
 
-    rv = test_char_downcase(c) || test_char_upcase(c);
+    rv = test_char_lowercase(c) || test_char_uppercase(c);
     rv = rv || (c >= '2' && c <= '9') || c == '?' || c == '_';
 }
 
@@ -351,7 +506,7 @@ static inline bool test_char_octal_suffix(int c)
 {
     bool rv;
 
-    rv = test_char_downcase(c) || test_char_upcase(c);
+    rv = test_char_lowercase(c) || test_char_uppercase(c);
     rv = rv || c == '8' || c == '9' || c == '?' || c == '_';
 
     return rv;
@@ -366,7 +521,7 @@ static inline bool test_char_decimal_suffix(int c)
 {
     bool rv;
 
-    rv = test_char_downcase(c) || test_char_upcase(c);
+    rv = test_char_lowercase(c) || test_char_uppercase(c);
     rv = rv || c == '?' || c == '_';
 
     return rv;
@@ -386,13 +541,13 @@ static inline bool test_char_following(int c)
 {
     bool rv;
 
-    rv = test_char_downcase(c) || test_char_upcase(c) || test_char_decimal(c);
-    rv = rv || c == '?' || c == '_';
+    rv = test_char_lowercase(c) || test_char_uppercase(c);
+    rv = rv || test_char_decimal(c) || c == '?' || c == '_';
 
     return rv;
 }
 
-static enum status append_to_lexme(lexme_info_t *lexme_info, char c)
+static lstatus_t append_to_lexme(lexme_info_t *lexme_info, char c)
 {
     /*
       Check if there is space for a new character
@@ -415,7 +570,7 @@ static enum status append_to_lexme(lexme_info_t *lexme_info, char c)
         new_text = realloc(lexme_info->text, new_size);
 
         if (new_text == NULL)
-            return FAILURE;
+            return LEXER_MEMORY_ERROR;
 
         /*
           If we assigned result of realloc directly to lexme_info->text
@@ -431,7 +586,7 @@ static enum status append_to_lexme(lexme_info_t *lexme_info, char c)
     lexme_info->text[lexme_info->index] = c;
     lexme_info->index += 1;
 
-    return OK;
+    return LEXER_OK;
 }
 
 static lunit_t *create_lunit(lexme_info_t *lexme_info, enum token token)
@@ -439,25 +594,37 @@ static lunit_t *create_lunit(lexme_info_t *lexme_info, enum token token)
     lunit_t *lunit;
 
     /*
-      Our tast is to create a lunit (lexer unit)
+      Our task is to create a lunit (lexer unit)
       and populate it with information
       First we need to allocate it
     */
-    lunit = malloc(sizeof(*lunit));
+    NEW(lunit)
 
     if (lunit == NULL)
         return NULL;
 
+    char *new_text;
+
+    new_text = realloc(lexme_info->text, lexme_info->index);
+
+    if (new_text == NULL)
+    {
+        free(lunit);
+
+        return NULL;
+    }
+
     /*
       Allocate a structure to hold information about
-      lexme's value and its length
-      If we fail we also need to free lunit
+      lexme's value and length
+      If we fail we also need to free lunit and new_text
       in order to prevent memory leaks
     */
-    lunit->lexme = lstring_create();
+    lunit->lexme = lstring_from_bytes(new_text, lexme_info->index);
 
     if (lunit->lexme == NULL)
     {
+        free(new_text);
         free(lunit);
 
         return NULL;
@@ -473,16 +640,23 @@ static lunit_t *create_lunit(lexme_info_t *lexme_info, enum token token)
 
         return NULL;
     }
+
+    // TODO
+
+    return lunit;
 }
 
-lunit_t *rufum_get_lunit(source_t *source)
+lstatus_t rufum_get_lunit(lunit_t **lunit_ptr, source_t *source)
 {
+    lstatus_t error;
     lexme_info_t lexme_info;
+    lunit_t *lunit;
+    int c;
 
     /*
       We are going to realloc this so we have to initialize it to NULL
     */
-    lexme_info.lexme = NULL;
+    lexme_info.text = NULL;
     
     /*
       We haven't allocated any space for the lexme (space)
@@ -492,51 +666,88 @@ lunit_t *rufum_get_lunit(source_t *source)
     lexme_info.space = 0;
 
     /*
-      Initialize line and column numbers to zero
-      First of all this position is invalid
-      There will never be a character at this position
-      We do it so that skip() can report an error 
-      by setting these two variables to nonzero value
+      Skip spaces, comments and escaped newlines
+      If after the call error isn't equal to LEXER_OK
+      then there were an error
     */
-    lexme_info.line = 0;
-    lexme_info.column = 0;
+    error = skip(source, &lexme_info);
 
     /*
-      Skip spaces, comments and escaped newlines
-      If after calling skip() line and column numbers
-      are nonzero then skip failed
-      There is only one reason why skip can fail:
-      it encountered a multiline comment that spanned
-      all the way up to end of file
-      This is the only case when we return something
-      that should have been skipped as a token
-      We do it because we want to report
-      at which line that comment started
+      This happens when we encounter a comment not terminated by newline
+      We return a special token
     */
-    skip(source, &lexme_info.line, &lexme_info.column);
+    if (error == LEXER_BAD_COMMENT)
+    {
+        lunit = create_lunit(&lexme_info, TOK_BAD_COM);
 
-    if (line != 0)
-        return make_lunit(lexme_info, TOK_BAD_COMMENT);
+        /*
+          Memory allocation failure is more serious than
+          unterminated comment because it is quite likely that
+          we will be unable to allocate anything
+        */
+        if (lunit == NULL)
+            return LEXER_MEMORY_ERROR;
+
+        *lunit_ptr = lunit;
+
+        return error;
+    }
+
+    /*
+      This happens when we encounter unterminated multiline comment
+      We return a special token
+    */
+    if (error == LEXER_BAD_MULTILINE_COMMENT)
+    {
+        lunit = create_lunit(&lexme_info, TOK_BAD_ML_COM);
+
+        /*
+          Memory allocation failure is more serious than
+          unterminated comment because it is quite likely that
+          we will be unable to allocate anything
+        */
+        if (lunit == NULL)
+            return LEXER_MEMORY_ERROR;
+
+        *lunit_ptr = lunit;
+
+        return error;
+    }
+
+    /*
+      If skip() returned any other error we just return it
+      No need to free anything other than source (this is parser's task)
+    */
+    if (error != LEXER_OK)
+        return error;
 
     /*
       Now that we have skipped all the things that
       shouldn't be returned as tokens
       we can finally start doing our job
       This is the first state of finite state machine
-      Read one char an based on it move to a appropriate state
+      Save position of current character and then
+      read one char and based on it move to an appropriate state
     */
-    c = rufum_get_char(source);
+    lexme_info.line = rufum_get_line(source);
+    lexme_info.column = rufum_get_column(source);
+
+    error = rufum_get_char(source, &c);
+
+    if (error != LEXER_OK)
+        return error;
+        
 
     /*
       Neither this if statement nor this switch represent a state
       Their task is to move to an appropriate state, nothing more
     */
-    if (test_char_downcase(c))
+    if (test_char_lowercase(c))
     {
         switch (c)
         {
             default:
-                goto downcase;
+                goto lowercase;
         }
     }
 
@@ -547,14 +758,34 @@ lunit_t *rufum_get_lunit(source_t *source)
         goto decimal_int;
 
     if (c == '\n')
-        return create_lunit(&lexme_info, TOK_EOL);
+    {
+        lunit = create_lunit(&lexme_info, TOK_EOL);
 
-    if (c == EOF)
-        return create_lunit(&lexme_info, TOK_EOF);
+        if (lunit == NULL)
+            return LEXER_MEMORY_ERROR;
 
-    return create_lunit(&lexme_info, TOK_UNKNOWN);
+        *lunit_ptr = lunit;
+        return LEXER_OK;
+    }
 
+    if (c == SOURCE_END)
+    {
+        lunit = create_lunit(&lexme_info, TOK_END);
 
+        if (lunit == NULL)
+            return LEXER_MEMORY_ERROR;
+
+        *lunit_ptr = lunit;
+        return LEXER_OK;
+    }
+
+    lunit = create_lunit(&lexme_info, TOK_UNKNOWN);
+
+    if (lunit == NULL)
+        return LEXER_MEMORY_ERROR;
+
+    *lunit_ptr = lunit;
+    return LEXER_OK;
 
 initial_zero:
     /*
@@ -564,7 +795,7 @@ initial_zero:
       Otherwise it works just like decimal_int
     */
     PROLOGUE
-    TRANSITION_F(decimal_int, decimal)
+    TRANSITION_C(decimal_int, decimal)
     TRANSITION_S(decimal_int_dot, '.')
     TRANSITION_S(decimal_int_comma, ',')
     TRANSITION_S(binary_prefix, 'b')
@@ -582,10 +813,10 @@ decimal_int:
       numbers starting with zero do not belong here
     */
     PROLOGUE
-    TRANSITION_F(decimal_int, decimal)
+    TRANSITION_C(decimal_int, decimal)
     TRANSITION_S(decimal_int_dot, '.')
     TRANSITION_S(decimal_int_comma, ',')
-    TRANSITION_F(decimal_int_suffix, decimal_suffix)
+    TRANSITION_C(decimal_int_suffix, decimal_suffix)
     EPILOGUE(TOK_DEC_INT)
 
 decimal_int_dot:
@@ -597,24 +828,24 @@ decimal_int_dot:
       However if we get another dot or comma then we have an invalid sequence
     */
     PROLOGUE
-    TRANSITION_F(decimal_float, decimal)
-    TRANSITION_F(decimal_int_sequence, sequence)
+    TRANSITION_C(decimal_float, decimal)
+    TRANSITION_C(decimal_int_sequence, sequence)
     EPILOGUE(TOK_DEC_INT_DOT)
 
 decimal_int_comma:
     PROLOGUE
-    TRANSITION_F(decimal_int, decimal)
-    TRANSITION_F(decimal_int_sequence, sequence)
+    TRANSITION_C(decimal_int, decimal)
+    TRANSITION_C(decimal_int_sequence, sequence)
     EPILOGUE(TOK_DEC_INT_COM)
 
 decimal_int_sequence:
     PROLOGUE
-    TRANSITION_F(decimal_int_sequence, following)
+    TRANSITION_C(decimal_int_sequence, following)
     EPILOGUE(TOK_DEC_INT_SEQ)
 
 decimal_int_suffix:
     PROLOGUE
-    TRANSITION_F(decimal_int_suffix, following)
+    TRANSITION_C(decimal_int_suffix, following)
     EPILOGUE(TOK_DEC_INT_SUF)
 
 decimal_float:
@@ -637,8 +868,8 @@ hexadecimal_prefix:
     PROLOGUE
     EPILOGUE(TOK_HEX_PREFIX)
 
-downcase:
+lowercase:
     PROLOGUE
-    TRANSITION_F(downcase, downcase)
-    EPILOGUE(TOK_DOWNCASE)
+    TRANSITION_C(lowercase, lowercase)
+    EPILOGUE(TOK_LOWERCASE)
 }

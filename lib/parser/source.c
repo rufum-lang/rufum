@@ -1,7 +1,8 @@
 #include "source.h"
 
+#include "lstatus.h"
+
 #include <common/memory.h>
-#include <common/status.h>
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,11 +22,13 @@
     We don't know! This is why we save it
 */
 
-typedef enum source_type
+enum source_type
 {
     SOURCE_FILE,
     SOURCE_STRING
-} source_type_t;
+};
+
+typedef enum source_type source_type_t;
 
 /*
   Typedef is in source.h
@@ -109,7 +112,7 @@ void rufum_destroy_source(source_t *source)
     return;
 }
 
-static status_t save_column(source_t *source)
+static lstatus_t save_column(source_t *source)
 {
     /*
       First resize the stack to make space for the new element
@@ -121,7 +124,7 @@ static status_t save_column(source_t *source)
     new_stack = realloc(source->column_stack, new_size);
     
     if (new_stack == NULL)
-        return FAILURE;
+        return LEXER_MEMORY_ERROR;
 
     source->column_stack = new_stack;
 
@@ -137,7 +140,7 @@ static status_t save_column(source_t *source)
     source->column_stack[source->column_stack_index] = source->column;
     source->column_stack_index += 1;
     
-    return OK;
+    return LEXER_OK;
 }
 
 static size_t restore_column(source_t *source)
@@ -157,7 +160,7 @@ static size_t restore_column(source_t *source)
     return source->column_stack[source->column_stack_index];
 }
 
-static int move_forward(source_t *source, int c)
+static lstatus_t move_forward(source_t *source, int c)
 {
     /*
       Here we update line number and column number
@@ -183,14 +186,14 @@ static int move_forward(source_t *source, int c)
     if (c == '\n')
     {
         if (source->line == SIZE_MAX)
-            return SOURCE_LINE_LIMIT_ERROR;
+            return LEXER_LINE_LIMIT_ERROR;
 
         /*
-          There is only one thing that ccan cause
+          There is only one thing that can cause
           save_column to fail - lack of memory
         */
-        if (save_column(source) == FAILURE)
-            return SOURCE_MEMORY_ERROR;
+        if (save_column(source) == LEXER_MEMORY_ERROR)
+            return LEXER_MEMORY_ERROR;
 
         source->line += 1;
         source->column = 1;
@@ -198,16 +201,15 @@ static int move_forward(source_t *source, int c)
     else
     {
         if (source->column == SIZE_MAX)
-            return SOURCE_COLUMN_LIMIT_ERROR;
+            return LEXER_COLUMN_LIMIT_ERROR;
 
         source->column += 1;
     }
 
     /*
-      All the error codes we return are negative
-      Hence return 0 on success
+      Indicate success
     */
-    return 0;
+    return LEXER_OK;
 }
 
 static void move_backward(source_t *source, int c)
@@ -231,7 +233,7 @@ static void move_backward(source_t *source, int c)
     return;
 }
 
-status_t rufum_unget_char(source_t *source, int c)
+lstatus_t rufum_unget_char(source_t *source, int c)
 {
     /*
       We are trying to push EOF, but this won't do
@@ -246,7 +248,7 @@ status_t rufum_unget_char(source_t *source, int c)
     if (c == SOURCE_END)
     {
         source->end = true;
-        return OK;
+        return LEXER_OK;
     }
 
     /*
@@ -259,7 +261,7 @@ status_t rufum_unget_char(source_t *source, int c)
     new_stack = realloc(source->unread_stack, new_size);
     
     if (new_stack == NULL)
-        return FAILURE;
+        return LEXER_MEMORY_ERROR;
 
     source->unread_stack = new_stack;
 
@@ -278,10 +280,10 @@ status_t rufum_unget_char(source_t *source, int c)
     */
     move_backward(source, c);
 
-    return OK;
+    return LEXER_OK;
 }
 
-static int reread(source_t *source)
+static lstatus_t reread(source_t *source, int *char_ptr)
 {
     /*
       Array's size used as its subscript points one element past the last one
@@ -302,24 +304,31 @@ static int reread(source_t *source)
     new_stack = realloc(source->unread_stack, source->unread_stack_index);
 
     if (new_stack == NULL)
-        return SOURCE_MEMORY_ERROR;
+        return LEXER_MEMORY_ERROR;
 
     source->unread_stack = new_stack;
 
     /*
       Update line/column number
     */
-    int rv = move_forward(source, c);
+    lstatus_t rv = move_forward(source, c);
 
     /*
-      If move_forward failed return that error, else return the character
-      Function move_forward returns 0 on success and negative int on failure
-      There is no conflict as all character values are >= 0
+      On failure pass the error to the caller
     */
-    return (rv < 0) ? rv : c;
+    if (rv != LEXER_OK)
+        return rv;
+
+    /*
+      Put c at the location pointed to by char_ptr
+      so that the caller can access that value
+      and return value that indicates that we completed our task
+    */
+    *char_ptr = c;
+    return LEXER_OK;
 }
 
-static int read_from_file(source_t *source)
+static lstatus_t read_from_file(source_t *source, int *char_ptr)
 {
     /*
       Read one character
@@ -329,7 +338,7 @@ static int read_from_file(source_t *source)
     c = fgetc(source->source.fd);
 
     /*
-      If we encounter EOF we return a NULL byte
+      If we encounter EOF we return SOURCE_END
       There is no next character so we don't change
       line number nor column number
       Note thet we can't return EOF because
@@ -337,22 +346,38 @@ static int read_from_file(source_t *source)
       TODO
     */
     if (c == EOF)
-        return SOURCE_END;
+    {
+        /*
+          If error indicator is set for stream ferror returns non-zero
+        */
+        if (ferror(source->source.fd) != 0)
+            return LEXER_IO_ERROR;
+        
+        *char_ptr = SOURCE_END;
+        return LEXER_OK;
+    }
 
     /*
       Update line/column number
     */
-    int rv = move_forward(source, c);
+    lstatus_t rv = move_forward(source, c);
 
     /*
-      If move_forward failed return that error, else return the character
-      Function move_forward returns 0 on success and negative int on failure
-      There is no conflict as all character values are >= 0
+      On failure pass the error to the caller
     */
-    return (rv < 0) ? rv : c;
+    if (rv != LEXER_OK)
+        return rv;
+
+    /*
+      Put c at the location pointed to by char_ptr
+      so that the caller can access that value
+      and return value that indicates that we completed our task
+    */
+    *char_ptr = c;
+    return LEXER_OK;
 }
 
-static int read_from_string(source_t *source)
+static lstatus_t read_from_string(source_t *source, int *char_ptr)
 {
     /*
       Check if we have have reached end of string
@@ -360,7 +385,10 @@ static int read_from_string(source_t *source)
       TODO
     */
     if (source->buffer_index == source->buffer_size)
-        return SOURCE_END;
+    {
+        *char_ptr = SOURCE_END;
+        return LEXER_OK;
+    }
     /*
       Read one character from the buffer incrementing the index variable
     */
@@ -372,17 +400,24 @@ static int read_from_string(source_t *source)
     /*
       Update line/column number
     */
-    int rv = move_forward(source, c);
+    lstatus_t rv = move_forward(source, c);
 
     /*
-      If move_forward failed return that error, else return the character
-      Function move_forward returns 0 on success and negative int on failure
-      There is no conflict as all character values are >= 0
+      If there was an error pass returned value to the caller
     */
-    return (rv < 0) ? rv : c;
+    if (rv != LEXER_OK)
+        return rv;
+    
+    /*
+      Put c at the location pointed to by char_ptr
+      so that the caller can access that value
+      and return value that indicates that we completed our task
+    */
+    *char_ptr = c;
+    return LEXER_OK;
 }
 
-int rufum_get_char(source_t *source)
+lstatus_t rufum_get_char(source_t *source, int *char_ptr)
 {
     /*
       If we have unread a EOF return EOF
@@ -395,19 +430,20 @@ int rufum_get_char(source_t *source)
     if (source->end == true)
     {
         source->end = false;
-        return SOURCE_END;
+        *char_ptr = SOURCE_END;
+        return LEXER_OK;
     }
     else if (source->unread_stack_index != 0)
     {
-        return reread(source);
+        return reread(source, char_ptr);
     }
     else if (source->type == SOURCE_FILE)
     {
-        return read_from_file(source);
+        return read_from_file(source, char_ptr);
     }
     else /* source->type == SOURCE_STRING */
     {
-        return read_from_string(source);
+        return read_from_string(source, char_ptr);
     }
 }
 

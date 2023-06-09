@@ -1,6 +1,8 @@
 #ifndef RUFUM_PARSER_SOURCE_H
 #define RUFUM_PARSER_SOURCE_H
 
+#include "lstatus.h"
+
 #include <common/status.h>
 
 #include <stddef.h>
@@ -19,9 +21,9 @@ source_t *rufum_new_string_source(char const * const string);
 
 void rufum_destroy_source(source_t *source);
 
-status_t rufum_unget_char(source_t *source, int c);
+lstatus_t rufum_unget_char(source_t *source, int c);
 
-int rufum_get_char(source_t *source);
+lstatus_t rufum_get_char(source_t *source, int *char_ptr);
 
 size_t rufum_get_line(source_t *source);
 

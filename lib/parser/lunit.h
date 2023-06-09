@@ -54,7 +54,7 @@ enum token
     /*
       A lowercase identifier
     */
-    TOK_DOWNCASE,
+    TOK_LOWERCASE,
     /*
       Stray prefixes for binary, octal and hexadecimal numbers respectively
     */
@@ -81,7 +81,7 @@ enum token
     */
     TOK_DEC_INT_SEQ,
     /*
-      A decimal constant followed by invalid characters, eg. "0xabcdefg"
+      A decimal constant followed by invalid characters, eg. "123g"
       Here 'g' is the suffix, SUF stands for suffix
     */
     TOK_DEC_INT_SUF,
@@ -90,15 +90,25 @@ enum token
     */
     TOK_DEC_FLT,
     /*
-      End of line and end of file
+      End of line and end of source
     */
     TOK_EOL,
-    TOK_EOF,
+    TOK_END,
+    /*
+      One-line comment followed by end of input
+    */
+    TOK_BAD_COM,
+    /*
+      Unterminated multiline comment 
+    */
+    TOK_BAD_ML_COM,
     /*
       Unknown token, or in other words everything else
     */
     TOK_UNKNOWN
 };
+
+typedef struct lunit lunit_t;
 
 /* next field is set to NULL by lexer; it is used by parser */
 struct lunit
@@ -109,7 +119,5 @@ struct lunit
     size_t column;
     enum token token;
 };
-
-typedef struct lunit lunit_t;
 
 #endif
