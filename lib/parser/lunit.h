@@ -164,7 +164,6 @@ typedef struct lunit lunit_t;
 /* next field is set to NULL by lexer; it is used by parser */
 struct lunit
 {
-    lunit_t *next;
     lstring_t *lexme;
     size_t line;
     size_t column;

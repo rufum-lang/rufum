@@ -387,6 +387,14 @@ static lunit_t *create_lunit(lexme_info_t *lexme_info, enum token token)
     if (lunit == NULL)
         return NULL;
 
+    /*
+      lexme_info->text was allocated in steps
+      Each step occured every LEXME_ALLOCATION_STEP characters
+      Currently we have lexme_info->space space allocated
+      But need only lexme_info->index bytes, where index <= space
+      This means that we should trim space used by the lexme
+      Note: Realloc can fail even when trimming memory region
+    */
     char *new_text;
 
     new_text = realloc(lexme_info->text, lexme_info->index);
@@ -414,18 +422,9 @@ static lunit_t *create_lunit(lexme_info_t *lexme_info, enum token token)
         return NULL;
     }
 
-
-    lunit->lexme->text = realloc(lexme_info->text, lexme_info->index);
-
-    if (lunit->lexme->text == NULL)
-    {
-        lstring_destroy(lunit->lexme);
-        free(lunit);
-
-        return NULL;
-    }
-
-    // TODO
+    lunit->token = token;
+    lunit->line = lexme_info->line;
+    lunit->column = lexme_info->column;
 
     return lunit;
 }
