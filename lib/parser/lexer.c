@@ -234,10 +234,10 @@ system##_int_sequence:                             \
     TRANSITION_C(system##_int_sequence, following) \
     EPILOGUE(TOKEN_INT_SEQ_##system)
 
-#define STATE_INT_SUFFIX(system)                 \
-system##_int_suffix:                             \
-    PROLOGUE                                     \
-    TRANSITION_C(system##_int_suffix, following) \
+#define STATE_INT_SUFFIX(system)              \
+system##_int_suffix:                          \
+    PROLOGUE                                  \
+    TRANSITION_C(system##_int_suffix, suffix) \
     EPILOGUE(TOKEN_INT_SUF_##system)
 
 #define INTEGER_STATES(system) \
@@ -300,10 +300,10 @@ system##_float_sequence:                             \
     TRANSITION_C(system##_float_sequence, following) \
     EPILOGUE(TOKEN_FLT_SEQ_##system)
 
-#define STATE_FLOAT_SUFFIX(system)                 \
-system##_float_suffix:                             \
-    PROLOGUE                                       \
-    TRANSITION_C(system##_float_suffix, following) \
+#define STATE_FLOAT_SUFFIX(system)              \
+system##_float_suffix:                          \
+    PROLOGUE                                    \
+    TRANSITION_C(system##_float_suffix, suffix) \
     EPILOGUE(TOKEN_FLT_SUF_##system)
 
 #define FLOAT_STATES(system)     \
