@@ -73,6 +73,17 @@ static inline bool test_char_hexadecimal_suffix(int c)
     return rv;
 }
 
+static inline bool test_char_suffix(int c)
+{
+    bool rv;
+
+    rv = test_char_lowercase(c) || test_char_uppercase(c);
+    rv = rv || c == '?' || c == '_';
+    rv = rv || test_char_decimal(c) || c == ',' || c == '.';
+
+    return rv;
+}
+
 static inline bool test_char_sequence(int c)
 {
     return c == '.' || c == ',';
