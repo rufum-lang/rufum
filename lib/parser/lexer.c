@@ -168,13 +168,13 @@ matched_##matched:                     \
     EPILOGUE(token)
 
 /*
-  NUMBER STATE MACROS
+  INTEGER STATE MACROS
   ===================
 
   These macros are used select right token to return
   They are used by STATE_INT_* macros
   Example:
-    Macro STATE_INT take system as a parameter and uses TOKEN_INT_##system
+    Macro STATE_INT takes system as a parameter and uses TOKEN_INT_##system
     to find right token to return depending on numeral system used
 */
 #define TOKEN_INT_binary TOK_BIN_INT
@@ -223,7 +223,7 @@ matched_##matched:                     \
   
   Successive suffix characters follow initial suffix character
   To get this set we need to perform a union of identifier characters and
-  characters makeing up a number in a given numeral system. Example:
+  characters making up a number in a given numeral system. Example:
     identidiers: a-z A-Z 0-9 ? _
     hexadecimal: 0-9 a-f A-F , .
     union: a-z A-Z 0-9 ? _ , .
@@ -350,7 +350,16 @@ system##_int_suffix:                          \
     STATE_INT_SEQUENCE(system) \
     STATE_INT_SUFFIX(system)
 
+/*
+  FLOATING POINT NUMBER STATE MACROS
+  ==================================
 
+  These macros are used select right token to return
+  They are used by STATE_FLT_* macros
+  Example:
+    Macro STATE_FLOAT takes system as a parameter and uses TOKEN_FLT_##system
+    to find right token to return depending on numeral system used
+*/
 #define TOKEN_FLT_binary TOK_BIN_FLT
 #define TOKEN_FLT_octal TOK_OCT_FLT
 #define TOKEN_FLT_decimal TOK_DEC_FLT
@@ -376,6 +385,15 @@ system##_int_suffix:                          \
 #define TOKEN_FLT_SUF_decimal TOK_DEC_FLT_SUF
 #define TOKEN_FLT_SUF_hexadecimal TOK_HEX_FLT_SUF
 
+/*
+  Identical to STATE_INT except we have encountered one dot in addition to
+  commas and numbers, last character was either a dot or a number
+  First transition leads to this macro
+  Second transition leads to a state represented by STATE_FLOAT_DOT macro
+  Third transition leads to a state represented by STATE_FLOAT_COMMA macro
+  Fourth state leads to a state represented by STATE_FLOAT_SUFFIX macro
+  If we can't make a transition then we have found a legal float
+*/
 #define STATE_FLOAT(system)                              \
 system##_float:                                          \
     PROLOGUE                                             \
@@ -385,37 +403,62 @@ system##_float:                                          \
     TRANSITION_C(system##_float_suffix, system##_suffix) \
     EPILOGUE(TOKEN_FLT_##system)
 
+/*
+  We have encountered another dot but there can be only one
+  There is only one transition leading back to this macro
+  We sort of loop reading characters until we encounter
+  something that can't form a suffix
+*/
 #define STATE_FLOAT_DOT(system)              \
 system##_float_dot:                          \
     PROLOGUE                                 \
     TRANSITION_C(system##_float_dot, suffix) \
     EPILOGUE(TOKEN_FLT_DOT_##system)
 
+/*
+  This works exactly the same way as STATE_INT_COMMA
+*/
 #define STATE_FLOAT_COMMA(system)                   \
 system##_float_comma:                               \
     PROLOGUE                                        \
     TRANSITION_C(system##_float, system)            \
     TRANSITION_C(system##_float_sequence, sequence) \
+    TRANSITION_C(system##_float_suffix, suffix)     \
     EPILOGUE(TOKEN_FLT_COM_##system)
 
+/*
+  This works exactly the same way as STATE_INT_SEQUENCE
+*/
 #define STATE_FLOAT_SEQUENCE(system)              \
 system##_float_sequence:                          \
     PROLOGUE                                      \
     TRANSITION_C(system##_float_sequence, suffix) \
     EPILOGUE(TOKEN_FLT_SEQ_##system)
 
+/*
+  This works exactly the same way as STATE_INT_SUFFIX
+*/
 #define STATE_FLOAT_SUFFIX(system)              \
 system##_float_suffix:                          \
     PROLOGUE                                    \
     TRANSITION_C(system##_float_suffix, suffix) \
     EPILOGUE(TOKEN_FLT_SUF_##system)
 
+/*
+  This macro creates all the states needed to scan
+  a floating point number in a given numeral system
+*/
 #define FLOAT_STATES(system)     \
     STATE_FLOAT(system)          \
     STATE_FLOAT_DOT(system)      \
     STATE_FLOAT_COMMA(system)    \
     STATE_FLOAT_SEQUENCE(system) \
     STATE_FLOAT_SUFFIX(system)
+
+/*
+  DATA SECTION
+  ============
+*/
 
 // TODO move it to config file
 #define LEXME_ALLOCATION_STEP 32
@@ -431,9 +474,33 @@ struct lexme_info
 
 typedef struct lexme_info lexme_info_t;
 
-#include "skip.i.c"
+/*
+  CODE INCLUDE SECTION
+  ====================
 
+  These two files contain static C functions
+  They are in separate files because this file is already too big
+  These functions are similar in what they do:
+    skip.i.c: here we skip whitespace and comments
+    categories.i.c: here we compare characters to certain character categories
+*/
+#include "skip.i.c"
 #include "categories.i.c"
+
+/*
+  CODE SECTION
+  ============
+
+  Here begin the actual function definitions
+  Following functions are defined:
+    append_to_lexme: This function appends a character to a string
+      representing currently processed token (a lexme)
+    create_lunit: This function processes lexme_info in order to create a 
+      lunit or lexer unit, that is the thing that lexer outputs
+      It contains all the information about the token that parser needs
+    rufum_get_lunit: Main lexer function, it implements a finite state machine
+      and outputs a lunit
+*/
 
 static lstatus_t append_to_lexme(lexme_info_t *lexme_info, char c)
 {
