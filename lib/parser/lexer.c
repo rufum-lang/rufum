@@ -13,7 +13,7 @@
 /*
   These defines prevent us from having to pass the same
   argument twice over and over again
-  We can pass a to a STATE_* macros instead both a and 'a'
+  We can pass a to STATE_KW_* macros instead both a and 'a'
   To convert a to 'a' we just write _TO_CHAR_##a
   which will expand to 'a'
 */
