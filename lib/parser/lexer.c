@@ -10,7 +10,11 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+
 /*
+  BASIC MACROS
+  ============
+
   These defines prevent us from having to pass the same
   argument twice over and over again
   We can pass a to STATE_KW_* macros instead both a and 'a'
@@ -121,6 +125,9 @@
         return LEXER_MEMORY_ERROR;
 
 /*
+  KEYWORD STATE MACROS
+  ====================
+
   STATE_ID_* macros implement a finite state machine
   Search the web if you don't know what this means
 
@@ -160,6 +167,16 @@ matched_##matched:                     \
     TRANSITION_C(lowercase, following) \
     EPILOGUE(token)
 
+/*
+  NUMBER STATE MACROS
+  ===================
+
+  These macros are used select right token to return
+  They are used by STATE_INT_* macros
+  Example:
+    Macro STATE_INT take system as a parameter and uses TOKEN_INT_##system
+    to find right token to return depending on numeral system used
+*/
 #define TOKEN_INT_binary TOK_BIN_INT
 #define TOKEN_INT_octal TOK_OCT_INT
 #define TOKEN_INT_decimal TOK_DEC_INT
@@ -188,15 +205,52 @@ matched_##matched:                     \
 /*
   Following macros rely heavily on functions
   found in file categories.i.c included leter in this file
+
+  In STATE_INT_* and STATE_FLOAT_* macros what we mean by digit depends
+  on the numeral system, when we say we check if it is a digit
+  we mean 'it might be 0-1 or 0-7 or 0-9 or 0-9 a-f A-F'
+
+  There are two kinds of suffix characters: initial suffix characters
+  and successive suffix characters. The former are characters that can form
+  an identifier but are invalid in context of a number. To get a set
+  of suffix characters for a given numeral system we need to do a set
+  difference of characters that make up identifiers and characters that make
+  up a number in a given numeral system. Example:
+    identifiers: a-z A-Z 0-9 ? _ 
+    octal: 0-7 , . 
+    difference: a-z A-Z 8-9 ? _
+  The differnece set is a set of initial suffix characters for octal numbers.
+  
+  Successive suffix characters follow initial suffix character
+  To get this set we need to perform a union of identifier characters and
+  characters makeing up a number in a given numeral system. Example:
+    identidiers: a-z A-Z 0-9 ? _
+    hexadecimal: 0-9 a-f A-F , .
+    union: a-z A-Z 0-9 ? _ , .
+  Note tham union will be the same no matter which numeral system is used
 */
 
 /*
   Previous character was a digit but it is possible
   we have read one or more commas before that
-  Following sequences of characters can lead here:
-  '1', '2' ... '9', '369', '12,12', '0,3', '032' etc.
   Zero does not belong here, however this doesn't mean
   numbers starting with zero do not belong here
+  Current state: '1', '3,69', '0b0', '0x3,4', '0o70', '01'
+  First transition occurs when we encounter another digit
+  If we do encounter it we move to this state again (STATE_INT)
+  Examples: '11', '3,690', '0b01', '0x3,14', '0o700', '018'
+  Second transition occurs when we encounter a dot
+  It leads to state represented by STATE_INT_DOT macro
+  Examples: '1.', '3,69.', '0b0.', '0x3,1.', '0o70.', '01.'
+  Third transition occurs when we encounter a comma
+  It leads to state represented by STATE_INT_COMMA macro
+  Examples: '1,', '3,69,', '0b0,', '0x3,1,', '0o70,', '01,'
+  Fourth transition occurs when we encounter a character
+  that begins a suffix, what is considered such a character
+  depends on numeral system used.
+  It leads to a state represented by STATE_INT_SUFFIX macro
+  Examples: '1_', '3,69a', '0b02', '0x3,1g', '0o708', '01?'
+  If none of the transitions occurs then we have found a valid integer
 */
 #define STATE_INT(system)                              \
 system##_int:                                          \
@@ -210,42 +264,92 @@ system##_int:                                          \
 /*
   We have encountered a dot after sequence of digits and optionally
   one or more commas, previous character was a digit though
-  If we encounter a digit then we have a float
-  Example: We just got '0' after "1." which gives us "1.0"
-  However if we get another dot or comma then we have an invalid sequence
+  Current state: '1.', '3,000.', '0b0.', '0x3.', '0o333.', '004.'
+  First transition occurs when we encounter a digit
+  It leads to a state represented by STATE_FLOAT macro
+  Examples: '1.3', '3,000.0', '0b0.1', '0x3.1', '0o333.3', '004.9'
+  Second transition occurs whenwe encounter a dot or a comma
+  Any number that has a comma followed by a dot or comma is invalid
+  This transition leads to a state represented by STATE_INT_SEQUENCE macro
+  Examples: '1..', 13,000.,', '0b0.,', '0x3..', '0o333..', '004.,'
+  Third transition occurs when we encounter a initial suffix character
+  This transition leads to a state represented by STATE_FLOAT_SUFFIX macro
+  Example: '1.a', '3,000._', '0b0.2', '0x3.g', '0o333.z', '004.?'
+  It is also possible that none of the transitions will be made
+  In this case we report a number terminated by a dot
 */
-#define STATE_INT_DOT(system)                     \
-system##_int_dot:                                 \
-    PROLOGUE                                      \
-    TRANSITION_C(system##_float, system)          \
-    TRANSITION_C(system##_int_sequence, sequence) \
+#define STATE_INT_DOT(system)                            \
+system##_int_dot:                                        \
+    PROLOGUE                                             \
+    TRANSITION_C(system##_float, system)                 \
+    TRANSITION_C(system##_int_sequence, sequence)        \
+    TRANSITION_C(system##_float_suffix, system##_suffix) \
     EPILOGUE(TOKEN_INT_DOT_##system)
 
-#define STATE_INT_COMMA(system)                   \
-system##_int_comma:                               \
-    PROLOGUE                                      \
-    TRANSITION_C(system##_int, system)            \
-    TRANSITION_C(system##_int_sequence, sequence) \
+/*
+  We have encountered a comma after a sequence of digits and optionally
+  one or more commas, previous character was a digit though
+  Current state: '23,', '2,300,', '0b1110,', '0xfee1,', '0o770,', '0,0,3,'
+  First transition occurs when we encounter a digit
+  It leads to a state represented by STATE_INT macro
+  Examples: '23,4', '2,300,4', '0b1110,0', '0xfee1,0', '0o770,7', '0,0,3,2'
+  Second transition occurs when we encounter a dot or comma
+  A comma followed by another comma or a dot forms an invalid sequence
+  This transition leads to a state represented by STATE_INT_SEQUENCE macro
+  Examples: '23,,', '2,300,.', '0b1110,,', '0xfee1,.', '0o770,,', '0,0,3,.'
+  Third transition occurs when we encounter a initial suffix character
+  This transition leads to a state represented by STATE_INT_SUFFIX
+  Examples: '23,b', '2,300,F', '0b1110,4', '0xfee1,k', '0o777,9', '0,0,3,R'
+  It is also possible that none of the transition will be made
+  In this case we report a number terminated by a comma
+*/
+#define STATE_INT_COMMA(system)                        \
+system##_int_comma:                                    \
+    PROLOGUE                                           \
+    TRANSITION_C(system##_int, system)                 \
+    TRANSITION_C(system##_int_sequence, sequence)      \
+    TRANSITION_C(system##_int_suffix, system##_suffix) \
     EPILOGUE(TOKEN_INT_COM_##system)
 
-#define STATE_INT_SEQUENCE(system)                 \
-system##_int_sequence:                             \
-    PROLOGUE                                       \
-    TRANSITION_C(system##_int_sequence, following) \
+/*
+  We have encountered a number but it contained a dot or
+  a comma followed by another dot or a comma
+  Current state: '2,,', '200,300,.', '3,14..', '1,618.,'
+  There is only one transition: we read remaining characters until
+  we encounter a character that cannot be part of identifier nor number
+  When we finish we indicate we found an invalid number
+*/
+#define STATE_INT_SEQUENCE(system)              \
+system##_int_sequence:                          \
+    PROLOGUE                                    \
+    TRANSITION_C(system##_int_sequence, suffix) \
     EPILOGUE(TOKEN_INT_SEQ_##system)
 
+/*
+  We have encountered a character that can form an identifier
+  but connot form a number in a given numeral system
+  There is only one transition: we read characters until
+  we encounter something that cannot be part of identifier nor number
+  When we finish we indicate we found an invalid number
+*/
 #define STATE_INT_SUFFIX(system)              \
 system##_int_suffix:                          \
     PROLOGUE                                  \
     TRANSITION_C(system##_int_suffix, suffix) \
     EPILOGUE(TOKEN_INT_SUF_##system)
 
+/*
+  This macro creates all the states needed to scan a number
+  in a given numeral system, it depends on FLOAT_STATES though
+  as there are transition to floating point number states
+*/
 #define INTEGER_STATES(system) \
     STATE_INT(system)          \
     STATE_INT_DOT(system)      \
     STATE_INT_COMMA(system)    \
     STATE_INT_SEQUENCE(system) \
     STATE_INT_SUFFIX(system)
+
 
 #define TOKEN_FLT_binary TOK_BIN_FLT
 #define TOKEN_FLT_octal TOK_OCT_FLT
@@ -281,10 +385,10 @@ system##_float:                                          \
     TRANSITION_C(system##_float_suffix, system##_suffix) \
     EPILOGUE(TOKEN_FLT_##system)
 
-#define STATE_FLOAT_DOT(system)                 \
-system##_float_dot:                             \
-    PROLOGUE                                    \
-    TRANSITION_C(system##_float_dot, following) \
+#define STATE_FLOAT_DOT(system)              \
+system##_float_dot:                          \
+    PROLOGUE                                 \
+    TRANSITION_C(system##_float_dot, suffix) \
     EPILOGUE(TOKEN_FLT_DOT_##system)
 
 #define STATE_FLOAT_COMMA(system)                   \
@@ -294,10 +398,10 @@ system##_float_comma:                               \
     TRANSITION_C(system##_float_sequence, sequence) \
     EPILOGUE(TOKEN_FLT_COM_##system)
 
-#define STATE_FLOAT_SEQUENCE(system)                 \
-system##_float_sequence:                             \
-    PROLOGUE                                         \
-    TRANSITION_C(system##_float_sequence, following) \
+#define STATE_FLOAT_SEQUENCE(system)              \
+system##_float_sequence:                          \
+    PROLOGUE                                      \
+    TRANSITION_C(system##_float_sequence, suffix) \
     EPILOGUE(TOKEN_FLT_SEQ_##system)
 
 #define STATE_FLOAT_SUFFIX(system)              \
