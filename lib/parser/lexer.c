@@ -139,14 +139,14 @@
   Associated state for char c is matched_##current_state##c
   End macros have additional parameter: type of token to return
 */ 
-#define STATE_ID_1(matched, char_a)         \
+#define STATE_KW_1(matched, char_a)         \
 matched_##matched:                       \
     PROLOGUE                             \
     TRANSITION_M(matched, char_a)        \
     TRANSITION_C(lowercase, following)   \
     EPILOGUE(TOK_ID)
 
-#define STATE_ID_2(matched, char_a, char_b) \
+#define STATE_KW_2(matched, char_a, char_b) \
 matched_##matched:                       \
     PROLOGUE                             \
     TRANSITION_M(matched, char_a)        \
@@ -154,7 +154,7 @@ matched_##matched:                       \
     TRANSITION_C(lowercase, following)   \
     EPILOGUE(TOK_ID)
 
-#define STATE_ID_F(matched, token)        \
+#define STATE_KW_F(matched, token)        \
 matched_##matched:                     \
     PROLOGUE                           \
     TRANSITION_C(lowercase, following) \
