@@ -83,7 +83,7 @@ file (MAKE_DIRECTORY ${INTERNAL_DIR})
 file (COPY ${HEADER_FILES} DESTINATION ${EXTERNAL_DIR})
 
 
-configure_file (config/external.h.in ${EXTERNAL_DIR}/config.h)
+configure_file (config/rufum.h.in ${EXTERNAL_DIR}/rufum.h)
 configure_file (config/internal.h.in ${INTERNAL_DIR}/config.h)
 
 # We have already checked if there is something to build

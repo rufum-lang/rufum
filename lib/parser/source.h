@@ -5,17 +5,16 @@
 
 #include <common/status.h>
 
+#include <external/rufum.h>
+
 #include <stddef.h>
 #include <stdio.h>
 
-#define SOURCE_END 256
-#define SOURCE_MEMORY_ERROR -1
-#define SOURCE_LINE_LIMIT_ERROR -2
-#define SOURCE_COLUMN_LIMIT_ERROR -3
+#define SOURCE_END -1
 
 typedef struct source source_t;
 
-source_t *rufum_new_file_source(FILE *fd);
+source_t *rufum_new_file_source(rufum_reader_fn reader, void *data);
 
 source_t *rufum_new_string_source(char const * const string);
 

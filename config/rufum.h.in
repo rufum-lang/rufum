@@ -1,6 +1,7 @@
 #ifndef RUFUM_CONFIG_H
 #define RUFUM_CONFIG_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define RUFUM_SIGNED_MIN ${RUFUM_SIGNED_MIN}
@@ -9,5 +10,7 @@
 
 typedef ${RUFUM_SIGNED} rufum_signed_t;
 typedef ${RUFUM_UNSIGNED} rufum_unsigned_t;
+
+typedef int (*rufum_reader_fn)(char *buffer, void *data, size_t *size);
 
 #endif

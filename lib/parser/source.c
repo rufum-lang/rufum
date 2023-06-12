@@ -4,6 +4,8 @@
 
 #include <common/memory.h>
 
+#include <external/rufum.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -30,6 +32,27 @@ enum source_type
 
 typedef enum source_type source_type_t;
 
+struct file_info
+{
+    rufum_reader_fn reader;
+    void *data;
+    char * buffer;
+    size_t position;
+    size_t limit;
+};
+
+typedef struct file_info file_info_t;
+
+
+struct string_info
+{
+    char const * buffer;
+    size_t position;
+    size_t limit;
+};
+
+typedef struct string_info string_info_t;
+
 /*
   Typedef is in source.h
 */
@@ -37,20 +60,20 @@ struct source
 {
     union
     {
-        FILE *fd;
-        char const *buffer;
-    } source;
+        file_info_t file;
+        string_info_t string;
+    } info;
     char *unread_stack;
     size_t *column_stack;
     size_t line;
     size_t column;
     size_t unread_stack_index;
     size_t column_stack_index;
-    size_t buffer_index;
-    size_t buffer_size;
     source_type_t type;
     bool end;
 };
+
+#define FILE_BUFFER_SIZE 2048
 
 static void init_source(source_t *source)
 {
@@ -65,8 +88,11 @@ static void init_source(source_t *source)
     return;
 }
 
-source_t *rufum_new_file_source(FILE *fd)
+source_t *rufum_new_file_source(rufum_reader_fn reader, void *data)
 {
+    /*
+      Attempt to allocate the source
+    */
     source_t *new_source;
 
     NEW(new_source)
@@ -74,15 +100,40 @@ source_t *rufum_new_file_source(FILE *fd)
     if (new_source == NULL)
         return NULL;
 
+    /*
+      Attempt to allocate the buffer
+    */
+    char *buffer;
+
+    buffer = malloc(FILE_BUFFER_SIZE);
+
+    if (buffer == NULL)
+    {
+        free(new_source);
+
+        return NULL;
+    }
+
+    /*
+      Generic initialization
+    */
     init_source(new_source);
 
-    new_source->source.fd = fd;
+    /*
+      File specific initialization
+      Setting both limit and position to 0 will trigger buffer reload
+    */
+    new_source->info.file.reader = reader;
+    new_source->info.file.data = data;
+    new_source->info.file.buffer = buffer;
+    new_source->info.file.position = 0;
+    new_source->info.file.limit = 0;
     new_source->type = SOURCE_FILE;
 
     return new_source;
 }
 
-source_t *rufum_new_string_source(char const * const string)
+source_t *rufum_new_string_source(char const * string)
 {
     source_t *new_source;
 
@@ -93,8 +144,8 @@ source_t *rufum_new_string_source(char const * const string)
 
     init_source(new_source);
 
-    new_source->source.buffer = string;
-    new_source->buffer_index = 0;
+    new_source->info.string.buffer = string;
+    new_source->info.string.position = 0;
     new_source->type = SOURCE_STRING;
 
     return new_source;
@@ -107,6 +158,8 @@ void rufum_destroy_source(source_t *source)
     */
     free(source->unread_stack);
     free(source->column_stack);
+    if (source->type == SOURCE_FILE)
+        free(source->info.file.buffer);
     free(source);
 
     return;
@@ -331,42 +384,81 @@ static lstatus_t reread(source_t *source, int *char_ptr)
 static lstatus_t read_from_file(source_t *source, int *char_ptr)
 {
     /*
-      Read one character
+      Check if we need to reload the buffer
+    */
+    if (source->info.file.position == source->info.file.limit)
+    {
+        rufum_reader_fn reader;
+        void *data;
+        char *buffer;
+        size_t size;
+        int rv;
+
+        /*
+          Make everything shorter by assiging these
+          long variable names to temporary varaibles
+        */
+        reader = source->info.file.reader;
+        data = source->info.file.data;
+        buffer = source->info.file.buffer;
+
+        /*
+          We want to read entire buffer worth of data
+        */
+        size = FILE_BUFFER_SIZE;
+
+        /*
+          Read a chunk of data
+        */
+        rv = reader(buffer, data, &size);
+
+        /*
+          Non-zero means I/O error
+        */
+        if (rv != 0)
+            return LEXER_IO_ERROR;
+
+        /*
+          If we read 0 bytes then we encountered end of input
+          Also this is why we can't make it a function:
+          How do we signal that we succeeded but should return?
+          LEXER_OK - we successfully read a chunk of data, continue
+          LEXER_OK - we encountered end of input, stop
+        */
+        if (size == 0)
+        {
+            *char_ptr = SOURCE_END;
+            return LEXER_OK;
+        }
+
+        /*
+          Update the index of last character (size)
+          and position in the buffer (position)
+        */
+        source->info.file.limit = size;
+        source->info.file.position = 0;
+    }
+
+    /*
+      Read one character from the buffer incrementing position in the buffer
     */
     int c;
 
-    c = fgetc(source->source.fd);
-
-    /*
-      If we encounter EOF we return SOURCE_END
-      There is no next character so we don't change
-      line number nor column number
-      Note thet we can't return EOF because
-      its value varies between implementations
-      TODO
-    */
-    if (c == EOF)
-    {
-        /*
-          If error indicator is set for stream ferror returns non-zero
-        */
-        if (ferror(source->source.fd) != 0)
-            return LEXER_IO_ERROR;
-        
-        *char_ptr = SOURCE_END;
-        return LEXER_OK;
-    }
+    c = source->info.file.buffer[source->info.file.position];
+    source->info.file.position += 1;
 
     /*
       Update line/column number
     */
-    lstatus_t rv = move_forward(source, c);
+    lstatus_t error;
+
+    error = move_forward(source, c);
 
     /*
       On failure pass the error to the caller
     */
-    if (rv != LEXER_OK)
-        return rv;
+    if (error != LEXER_OK)
+        return error;
 
     /*
       Put c at the location pointed to by char_ptr
@@ -381,21 +473,21 @@ static lstatus_t read_from_string(source_t *source, int *char_ptr)
 {
     /*
       Check if we have have reached end of string
-      If se return SOURCE_END
-      TODO
+      If so return SOURCE_END
     */
-    if (source->buffer_index == source->buffer_size)
+    if (source->info.string.position == source->info.string.limit)
     {
         *char_ptr = SOURCE_END;
         return LEXER_OK;
     }
+
     /*
       Read one character from the buffer incrementing the index variable
     */
     int c;
 
-    c = source->source.buffer[source->buffer_index - 1];
-    source->buffer_index += 1;
+    c = source->info.string.buffer[source->info.string.position];
+    source->info.string.position += 1;
 
     /*
       Update line/column number
