@@ -5,6 +5,7 @@
 #include "lunit.h"
 #include "source.h"
 
-lstatus_t rufum_get_lunit(lunit_t **lunit_ptr, source_t *source);
+void rufum_destroy_lunit(lunit_t *lunit);
+lstatus_t rufum_scan(lunit_t **lunit_ptr, source_t *source);
 
 #endif
