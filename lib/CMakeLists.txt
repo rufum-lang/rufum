@@ -11,8 +11,6 @@ file (GLOB_RECURSE SOURCE_FILES *.c)
 # They use .c extension for syntax highlighting
 list (FILTER SOURCE_FILES EXCLUDE REGEX ".i.c$")
 
-message (STATUS ${SOURCE_FILES})
-
 # Header files to be installed
 file (GLOB HEADER_FILES headers/*.h)
 
