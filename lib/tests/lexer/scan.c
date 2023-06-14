@@ -415,7 +415,6 @@ static char *scan(source_t *source)
         {
             print_error(error);
             list_empty(&list);
-            rufum_destroy_lunit(lunit);
 
             return NULL;
         }
