@@ -126,3 +126,5 @@ if (${RUFUM_BUILD_STATIC})
 	endif ()
 
 endif ()
+
+add_subdirectory (tests)
