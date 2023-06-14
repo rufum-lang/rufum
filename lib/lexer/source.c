@@ -350,13 +350,15 @@ static lstatus_t reread(source_t *source, int *char_ptr)
       We removed one element from the stack
       Decrement unread_index and resize unread_stack
       based on unread_index (new size of the stack)
+      Note that if unread_stack_index becomes zero then realloc returns NULL
+      We MUST check if it is non-zero before checking if new_stack is NULL
     */
     char *new_stack;
 
     source->unread_stack_index -= 1;
     new_stack = realloc(source->unread_stack, source->unread_stack_index);
 
-    if (new_stack == NULL)
+    if (source->unread_stack_index != 0 && new_stack == NULL)
         return LEXER_MEMORY_ERROR;
 
     source->unread_stack = new_stack;
