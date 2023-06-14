@@ -583,7 +583,7 @@ static lunit_t *create_lunit(lexme_info_t *lexme_info, enum token token)
       If we fail we also need to free lunit and new_text
       in order to prevent memory leaks
     */
-    lunit->lexme = lstring_from_bytes(new_text, lexme_info->index);
+    lunit->lexme = rufum_lstr_from_bytes(new_text, lexme_info->index);
 
     if (lunit->lexme == NULL)
     {
@@ -602,7 +602,7 @@ static lunit_t *create_lunit(lexme_info_t *lexme_info, enum token token)
 
 void rufum_destroy_lunit(lunit_t *lunit)
 {
-    lstring_destroy(lunit->lexme);
+    rufum_lstr_destroy(lunit->lexme);
     free(lunit);
 
     return;

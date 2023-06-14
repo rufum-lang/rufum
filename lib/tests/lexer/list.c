@@ -45,7 +45,7 @@ void list_empty(lstring_list_t *list)
       past array's end and this is why we don't free element at this index
     */
     for (size_t iter = 0; iter != list->count; ++iter)
-        lstring_destroy(list->array[iter]);
+        rufum_lstr_destroy(list->array[iter]);
 }
 
 char *list_concat(lstring_list_t *list)

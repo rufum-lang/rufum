@@ -110,7 +110,7 @@ static lstring_t *read_chunk(FILE *fd)
     */
     lstring_t *lstring;
 
-    lstring = lstring_from_bytes(chunk, bytes_read);
+    lstring = rufum_lstr_from_bytes(chunk, bytes_read);
 
     if (lstring == NULL)
     {
@@ -163,7 +163,7 @@ static char *read(FILE *fd)
         */
         if (lstring->length == 0)
         {
-            lstring_destroy(lstring);
+            rufum_lstr_destroy(lstring);
 
             break;
         }
@@ -176,7 +176,7 @@ static char *read(FILE *fd)
         if (rv != 0)
         {
             list_empty(&list);
-            lstring_destroy(lstring);
+            rufum_lstr_destroy(lstring);
 
             return NULL;
         }

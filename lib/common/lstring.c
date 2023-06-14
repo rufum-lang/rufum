@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-lstring_t *lstring_create(void)
+lstring_t *rufum_lstr_create(void)
 {
     lstring_t *lstring;
 
@@ -30,7 +30,7 @@ lstring_t *lstring_create(void)
     return lstring;
 }
 
-lstring_t *lstring_from_bytes(char *bytes, size_t size)
+lstring_t *rufum_lstr_from_bytes(char *bytes, size_t size)
 {
     lstring_t *lstring;
 
@@ -51,7 +51,7 @@ lstring_t *lstring_from_bytes(char *bytes, size_t size)
     return lstring;
 }
 
-void lstring_destroy(lstring_t *lstring)
+void rufum_lstr_destroy(lstring_t *lstring)
 {
     /*
       Destroy lstring, if lstring->text is NULL free does nothing
@@ -62,7 +62,7 @@ void lstring_destroy(lstring_t *lstring)
     return;
 }
 
-status_t lstring_append_char(lstring_t *lstring, char c)
+status_t rufum_lstr_append_char(lstring_t *lstring, char c)
 {
     size_t new_size;
     char *new_text;
@@ -91,7 +91,7 @@ status_t lstring_append_char(lstring_t *lstring, char c)
     return OK;
 }
 
-status_t lstring_append_string(lstring_t *lstring, char *string)
+status_t rufum_lstr_append_string(lstring_t *lstring, char *string)
 {
     size_t string_length;
     size_t new_size;
@@ -126,7 +126,7 @@ status_t lstring_append_string(lstring_t *lstring, char *string)
     return OK;
 }
 
-status_t lstring_append_lstring(lstring_t *dest, lstring_t *src)
+status_t rufum_lstr_append_lstring(lstring_t *dest, lstring_t *src)
 {
     size_t new_size;
     char *new_text;
@@ -171,7 +171,7 @@ void lstring_append_size(lstring_t *lstring, size_t size)
 }
 */
 
-void lstring_reverse(lstring_t *lstring)
+void rufum_lstr_reverse(lstring_t *lstring)
 {
     size_t left_index, right_index, end_index;
 

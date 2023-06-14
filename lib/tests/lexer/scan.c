@@ -340,7 +340,7 @@ static lstring_t *lunit_to_lstring(lunit_t *lunit)
     */
     lstring_t *lstring;
 
-    lstring = lstring_from_bytes(string, size);
+    lstring = rufum_lstr_from_bytes(string, size);
 
     if (lstring == NULL)
     {
@@ -451,7 +451,7 @@ static char *scan(source_t *source)
         {
             puts(MEMORY_ERROR_MSG);
             list_empty(&list);
-            lstring_destroy(lstring);
+            rufum_lstr_destroy(lstring);
 
             return NULL;
         }
