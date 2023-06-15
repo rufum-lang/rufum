@@ -748,6 +748,11 @@ lstatus_t rufum_scan(lunit_t **lunit_ptr, source_t *source)
     /*
       Handle unknown entity
     */
+    error = append_to_lexme(&lexme_info, c);
+
+    if (error != LEXER_OK)
+        return error;
+
     lunit = create_lunit(&lexme_info, TOK_UNKNOWN);
 
     if (lunit == NULL)
