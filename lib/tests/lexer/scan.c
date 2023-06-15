@@ -70,7 +70,7 @@ static int reader(char *buffer, void *data, size_t *size)
 
 #define CASE(token) token: return #token;
 
-static char *token_to_string(enum token token)
+static char *token_to_string(token_t token)
 {
     switch (token)
     {
@@ -134,11 +134,13 @@ static char *token_to_string(enum token token)
         CASE(TOK_BAD_ML_COM)
 
         CASE(TOK_UNKNOWN)
+
+        default: return "Invalid token";
     }
 }
 
 /*
-  Meaning of this format string:
+  Meaning of this frmat string:
     Variadic arguments:
       1st: token to print (%s)
       2nd: line number (%zu)
@@ -147,7 +149,7 @@ static char *token_to_string(enum token token)
       5th and 6th: length of a lexme and the lexme (%.*s)
         (we do not print fifth argument)
 */
-#define FORMAT_STRING "%s: pos=(%zu, %zu), len=%zu\n | %.*s\n"
+#define FORMAT_STRING "%s: pos=(%zu, %zu), len=%zu\n | "
 
 static char *write_lunit_normal(lunit_t *lunit, size_t *size_ptr)
 {
@@ -171,8 +173,17 @@ static char *write_lunit_normal(lunit_t *lunit, size_t *size_ptr)
     size_t size;
 
     size = snprintf(NULL, 0, FORMAT_STRING, token_string,
-        lunit->line, lunit->column, lunit->lexme->length,
-        lunit->lexme->length, lunit->lexme->text);
+        lunit->line, lunit->column, lunit->lexme->length);
+
+    /*
+      We want to append lunit->lexme->text manually
+      We must ensure there is enought space for that
+      We also want to append a newline
+      Save current size as this is where we will append it
+      Note that we can't use "%.*s" as it expects an int and not size_t
+    */
+    size_t manual_append_index = size;
+    size += lunit->lexme->length + 1;
 
     /*
       Allocate buffer big enough to store the result string
@@ -193,10 +204,17 @@ static char *write_lunit_normal(lunit_t *lunit, size_t *size_ptr)
       will append the NULL byte but snprintf(buffer, size, ...) won't
     */
     snprintf(buffer, size, FORMAT_STRING, token_string,
-        lunit->line, lunit->column, lunit->lexme->length,
-        lunit->lexme->length, lunit->lexme->text);
+        lunit->line, lunit->column, lunit->lexme->length);
 
-    *size_ptr;
+    /*
+      Manually append lunit->lexme->text
+    */
+    strncpy(&buffer[manual_append_index], lunit->lexme->text,
+        lunit->lexme->length);
+
+    buffer[size - 1] = '\n';
+
+    *size_ptr = size;
     return buffer;
 }
 
