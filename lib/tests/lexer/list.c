@@ -87,5 +87,18 @@ char *list_concat(lstring_list_t *list)
         }
     }
 
+    /*
+      Terminate the string with NULL byte
+      Example:
+        list->count = 2;
+        list->array[0] = "Hello " (len = 6)
+        list->array[1] = "world\n" (len = 6)
+        string = "Hello world\n" (len = 12)
+        ix after last iteration = 12
+        character indices = 0 .. 11 inclusive
+      Where do we put the NULL byte? At index 12 (ix)
+    */
+    string[ix] = '\0';
+
     return string;
 }
