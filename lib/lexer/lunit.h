@@ -159,6 +159,8 @@ enum token
     TOK_UNKNOWN
 };
 
+typedef enum token token_t;
+
 typedef struct lunit lunit_t;
 
 /* next field is set to NULL by lexer; it is used by parser */
