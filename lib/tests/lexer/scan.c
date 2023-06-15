@@ -68,7 +68,7 @@ static int reader(char *buffer, void *data, size_t *size)
 }
 
 
-#define CASE(token) token: return #token;
+#define CASE(token) case token: return #token;
 
 static char *token_to_string(token_t token)
 {
