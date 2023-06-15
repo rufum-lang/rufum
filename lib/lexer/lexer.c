@@ -104,7 +104,7 @@
   Capital C in macro name stands for category
 */
 #define TRANSITION_C(target, function_suffix) \
-    if (c == test_char_##function_suffix(c))  \
+    if (test_char_##function_suffix(c))       \
         goto target;
 
 /*
