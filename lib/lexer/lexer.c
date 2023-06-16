@@ -67,7 +67,7 @@ static void *state_uppercase(token_t *token , int c)
 
 /*
   DECIMAL FLOATING POINT STATES
-  ======================
+  =============================
 
   This declaration is needed because state_decimal_float
   calls state_decimal_float_comma and vice versa
@@ -97,14 +97,8 @@ static void *state_decimal_float_sequence(token_t *token, int c)
 
 static void *state_decimal_float_dot(token_t *token, int c)
 {
-    if (test_char_decimal(c))
-        return &state_decimal_float;
-
-    if (test_char_sequence(c))
-        return &state_decimal_float_sequence;
-
-    if (test_char_decimal_suffix(c))
-        return &state_decimal_float_suffix;
+    if (test_char_suffix(c))
+        return &state_decimal_float_dot;
 
     *token = TOK_DEC_FLT_DOT;
 
@@ -178,14 +172,8 @@ static void *state_binary_float_sequence(token_t *token, int c)
 
 static void *state_binary_float_dot(token_t *token, int c)
 {
-    if (test_char_binary(c))
-        return &state_binary_float;
-
-    if (test_char_sequence(c))
-        return &state_binary_float_sequence;
-
-    if (test_char_binary_suffix(c))
-        return &state_binary_float_suffix;
+    if (test_char_suffix(c))
+        return &state_binary_float_dot;
 
     *token = TOK_BIN_FLT_DOT;
 
@@ -259,14 +247,8 @@ static void *state_octal_float_sequence(token_t *token, int c)
 
 static void *state_octal_float_dot(token_t *token, int c)
 {
-    if (test_char_octal(c))
-        return &state_octal_float;
-
-    if (test_char_sequence(c))
-        return &state_octal_float_sequence;
-
-    if (test_char_octal_suffix(c))
-        return &state_octal_float_suffix;
+    if (test_char_suffix(c))
+        return &state_octal_float_dot;
 
     *token = TOK_OCT_FLT_DOT;
 
@@ -340,14 +322,8 @@ static void *state_hexadecimal_float_sequence(token_t *token, int c)
 
 static void *state_hexadecimal_float_dot(token_t *token, int c)
 {
-    if (test_char_hexadecimal(c))
-        return &state_hexadecimal_float;
-
-    if (test_char_sequence(c))
-        return &state_hexadecimal_float_sequence;
-
-    if (test_char_hexadecimal_suffix(c))
-        return &state_hexadecimal_float_suffix;
+    if (test_char_suffix(c))
+        return &state_hexadecimal_float_dot;
 
     *token = TOK_HEX_FLT_DOT;
 
