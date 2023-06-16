@@ -17,7 +17,7 @@
 
 #define UNGET_CHAR(c) \
     error = rufum_unget_char(source, c); \
-    if (error != LEXER_OK);              \
+    if (error != LEXER_OK)               \
         return error;
 
 static lstatus_t skip_comment(source_t *source)
