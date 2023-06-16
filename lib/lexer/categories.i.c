@@ -74,6 +74,8 @@ static inline bool test_char_binary_suffix(int c)
 
     rv = test_char_lowercase(c) || test_char_uppercase(c);
     rv = rv || (c >= '2' && c <= '9') || c == '?' || c == '_';
+
+    return rv;
 }
 
 /*
