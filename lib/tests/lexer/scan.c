@@ -336,6 +336,8 @@ static lstring_t *lunit_to_lstring(lunit_t *lunit)
           this isn't a character, it doesn't have length or position either
           All we want to do is to write the token we encountered
           There is a special function that does it: write_lunit_eof
+        - TOK_EOL: end of line (or newline) it's whitespace and not visible
+          in a terminal and this is why we print it as hexadecimal value
         - TOK_UNKNOWN: an unknown character, we print the token, position and
           length. What about the lexme? Well, there are two cases to consider:
           - character is printable - we use write_character_normal
@@ -349,6 +351,10 @@ static lstring_t *lunit_to_lstring(lunit_t *lunit)
     if (lunit->token == TOK_END)
     {
         string = write_lunit_end(lunit, &size);
+    }
+    else if (lunit->token == TOK_EOL)
+    {
+        string = write_lunit_hex(lunit, &size);
     }
     else if (lunit->token == TOK_UNKNOWN)
     {
