@@ -17,6 +17,7 @@ static int trim_chunk(char **chunk_ptr, size_t size)
     if (size == 0)
     {
         free(*chunk_ptr);
+        *chunk_ptr = NULL;
 
         return 0;
     }
@@ -37,7 +38,7 @@ static int trim_chunk(char **chunk_ptr, size_t size)
     }
 
     /*
-      Update caller's copy of chunk
+      Make new_chunk accessible to the caller
     */
     *chunk_ptr = new_chunk;
 
