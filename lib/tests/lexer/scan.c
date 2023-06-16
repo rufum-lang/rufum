@@ -402,6 +402,9 @@ static void print_error(lstatus_t error)
         case LEXER_COLUMN_LIMIT_ERROR:
             puts("Line is too long to scan");
             return;
+        default:
+            puts("print_error: Unknown error (please report this)");
+            return;
     }
 }
 
