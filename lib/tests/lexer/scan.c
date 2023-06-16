@@ -135,7 +135,7 @@ static char *token_to_string(token_t token)
 
         CASE(TOK_UNKNOWN)
 
-        default: return "Invalid token";
+        default: return "INVALID";
     }
 }
 
@@ -212,6 +212,11 @@ static char *write_lunit_normal(lunit_t *lunit, size_t *size_ptr)
     strncpy(&buffer[manual_append_index], lunit->lexme->text,
         lunit->lexme->length);
 
+    /*
+      Add newline
+      Array's size used as its subscript points one element past the last one
+      We want to set the last one to newline, hence we subtract 1 from size
+    */
     buffer[size - 1] = '\n';
 
     *size_ptr = size;
@@ -291,19 +296,30 @@ static char *write_lunit_end(lunit_t *lunit, size_t *size_ptr)
     /*
       Copy token_string to a newly allocated buffer
       We can't return token_string as retured string has to be free-able
+      Allocate space for the string but also make space for a newline
+      This is why we add one to size
     */
-    size_t length;
+    size_t length, size;
     char *buffer;
 
     length = strlen(token_string);
+    size = length + 1;
     buffer = malloc(length);
 
     if (buffer == NULL)
         return NULL;
 
+    /*
+      Copy the string to the buffer and append a newline
+      Array's size used as its subscript points one element past the last one
+      We want to insert newline at the last element so we should subtract one
+      form size. However length is equal to size - 1 and this is why we use it
+      After all length = size + 1 (see above)
+    */
     strncpy(buffer, token_string, length);
+    buffer[length] = '\n';
 
-    *size_ptr = length;
+    *size_ptr = size;
     return buffer;
 }
 
