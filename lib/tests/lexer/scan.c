@@ -1,3 +1,4 @@
+#include "contents.h"
 #include "list.h"
 #include "msg.h"
 
@@ -523,6 +524,8 @@ char *scan_file(char *file_name)
 
     /*
       Create source, a structure that holds information about input source
+      Use the file variant. Note that fd is used internally by source
+      We can close the file after destroying the source
     */
     source_t *source;
 
@@ -537,14 +540,65 @@ char *scan_file(char *file_name)
     }
 
     /*
-      Scan contents of file
-      scan_file() prints error messages so we don't have to
+      Scan contents of file TODO meaningless comment
+      scan() prints error messages so we don't have to
     */
     char *buffer;
 
     buffer = scan(source);
     rufum_destroy_source(source);
     fclose(fd);
+
+    return buffer;
+}
+
+char *scan_string(char *file_name)
+{
+    /*
+      Open file that contains source code to scan
+    */
+    FILE *fd;
+
+    fd = fopen(file_name, "r");
+
+    if (fd == NULL)
+    {
+        perror("Couldn't open source file");
+
+        return NULL;
+    }
+
+    /*
+      Read contents of a file we are going to use as a source
+    */
+    char *string;
+
+    string = get_file_contents(fd);
+    fclose(fd);
+
+    /*
+      Create source, a structure that holds information about input source
+      Use the string variant
+    */
+    source_t *source;
+
+    source = rufum_new_string_source(string, strlen(string));
+
+    if (source == NULL)
+    {
+        puts(MEMORY_ERROR_MSG);
+
+        return NULL;
+    }
+
+    /*
+      Get contents of a file TODO meaningless comment
+      scan() prints error messages so we don't have to
+    */
+    char *buffer;
+
+    buffer = scan(source);
+    rufum_destroy_source(source);
 
     return buffer;
 }

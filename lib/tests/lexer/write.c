@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int write_file(char *file_name, char *buffer)
+int write(char *file_name, char *buffer)
 {
     /*
       Attempt to open the file
@@ -14,7 +14,7 @@ int write_file(char *file_name, char *buffer)
     {
         perror("Failed to open output file");
 
-        return -1;
+        return 1;
     }
 
     /*
@@ -34,7 +34,7 @@ int write_file(char *file_name, char *buffer)
     {
         puts("Encountered I/O error while writing to the output file");
     
-        return -1;
+        return 1;
     }
 
     return 0;
