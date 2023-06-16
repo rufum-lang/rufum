@@ -133,7 +133,7 @@ source_t *rufum_new_file_source(rufum_reader_fn reader, void *data)
     return new_source;
 }
 
-source_t *rufum_new_string_source(char const * string)
+source_t *rufum_new_string_source(char const * string, size_t size)
 {
     source_t *new_source;
 
@@ -146,6 +146,7 @@ source_t *rufum_new_string_source(char const * string)
 
     new_source->info.string.buffer = string;
     new_source->info.string.position = 0;
+    new_source->info.string.limit = size;
     new_source->type = SOURCE_STRING;
 
     return new_source;

@@ -16,7 +16,7 @@ typedef struct source source_t;
 
 source_t *rufum_new_file_source(rufum_reader_fn reader, void *data);
 
-source_t *rufum_new_string_source(char const * const string);
+source_t *rufum_new_string_source(char const *string, size_t size);
 
 void rufum_destroy_source(source_t *source);
 
