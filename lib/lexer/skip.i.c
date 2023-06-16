@@ -149,7 +149,9 @@ static lstatus_t try_skip_newline(source_t *source, bool *skipped)
     UNGET_CHAR(c)
 
     for (size_t iter = space_count; iter != 0; --iter)
+    {
         UNGET_CHAR(' ')
+    }
 
     UNGET_CHAR('\n')
 
