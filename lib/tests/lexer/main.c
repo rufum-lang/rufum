@@ -76,10 +76,10 @@ int compare(char *source_file, char *input_file, char *output_file)
       its return value is return value of this function
     */
 
-    int rv = write_file(output_file, source_buffer);
+    write_file(output_file, source_buffer);
     free(source_buffer);
 
-    return rv;
+    return 1;
 }
 
 int main(int argc, char **argv)
