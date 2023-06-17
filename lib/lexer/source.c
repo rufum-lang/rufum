@@ -69,6 +69,7 @@ struct source
     size_t column;
     size_t unread_stack_index;
     size_t column_stack_index;
+    size_t unread_after_end;
     source_type_t type;
     bool end;
 };
@@ -83,6 +84,7 @@ static void init_source(source_t *source)
     source->column = 1;
     source->unread_stack_index = 0;
     source->column_stack_index = 0;
+    source->unread_after_end = 0;
     source->end = false;
 
     return;
@@ -235,7 +237,6 @@ static lstatus_t move_forward(source_t *source, int c)
       And I'm not sure if this condition is ever met
       I wish I could just remove inner ifs #removing-code-is-good
       -- Mapniv
-      TODO Add more useful error messages maybe?
     */
     if (c == '\n')
     {
@@ -328,6 +329,9 @@ lstatus_t rufum_unget_char(source_t *source, int c)
     */
     source->unread_stack[source->unread_stack_index] = (char) c;
     source->unread_stack_index += 1;
+
+    if (source->end == true)
+        source->unread_after_end += 1;
 
     /*
       Update line and column number TODO
@@ -515,7 +519,8 @@ static lstatus_t read_from_string(source_t *source, int *char_ptr)
 lstatus_t rufum_get_char(source_t *source, int *char_ptr)
 {
     /*
-      If we have unread a EOF return EOF
+      If we have unread a SOURCE_END return then check if we have unread any
+      characters after unreading SOURCE_END, if yes return such character
       Read first comment in rufum_unget for information on source->eof
       Else if we have unread any other chars return the one on the top
       Otherwise the behaviour depends on the source
@@ -524,6 +529,17 @@ lstatus_t rufum_get_char(source_t *source, int *char_ptr)
     */
     if (source->end == true)
     {
+        if (source->unread_after_end != 0)
+        {
+            lstatus_t error;
+            error = reread(source, char_ptr);
+
+            if (error == LEXER_OK)
+                source->unread_after_end -= 1;
+
+            return error;
+        }
+
         source->end = false;
         *char_ptr = SOURCE_END;
         return LEXER_OK;
