@@ -229,7 +229,7 @@ static char *write_lunit_normal(lunit_t *lunit, size_t *size_ptr)
 */
 #undef FORMAT_STRING
 
-#define FORMAT_STRING "%s: pos=(%zu, %zu), pos=%zu | 0x%x (hex)"
+#define FORMAT_STRING "%s: pos=(%zu, %zu), pos=%zu\n | 0x%X (hex)\n"
 
 static char *write_lunit_hex(lunit_t *lunit, size_t *size_ptr)
 {
@@ -261,7 +261,7 @@ static char *write_lunit_hex(lunit_t *lunit, size_t *size_ptr)
     */
     char *buffer;
 
-    buffer = malloc(size);
+    buffer = malloc(size + 1);
 
     if (buffer == NULL)
         return NULL;
@@ -274,7 +274,7 @@ static char *write_lunit_hex(lunit_t *lunit, size_t *size_ptr)
       provided it has enough space. Call to snprintf(buffer, size + 1, ...)
       will append the NULL byte but snprintf(buffer, size, ...) won't
     */
-    snprintf(buffer, size, FORMAT_STRING, token_string,
+    snprintf(buffer, size + 1, FORMAT_STRING, token_string,
         lunit->line, lunit->column, lunit->lexme->length,
         (unsigned int) lunit->lexme->text[0]);
 
