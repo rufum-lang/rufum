@@ -19,6 +19,7 @@ option (RUFUM_BUILD_MODULE "Build module library" OFF)
 option (RUFUM_BUILD_SHARED "Build shared library" OFF)
 option (RUFUM_BUILD_STATIC "Build static library" OFF)
 option (RUFUM_BUILD_EXECUTABLE ${EXECUTABLE_DESC} OFF)
+option (RUFUM_ENABLE_TESTS "Enable tests" OFF)
 set (RUFUM_BITS 64 CACHE STRING ${BITS_DESC})
 
 # Check if we need to build anything
@@ -28,11 +29,17 @@ set (BUILD_NOTHING ${BUILD_NOTHING} AND NOT ${RUFUM_BUILD_STATIC})
 set (BUILD_NOTHING ${BUILD_NOTHING} AND NOT ${RUFUM_BUILD_EXECUTABLE})
 
 # Nothing to do? Print an error message
-if (${BUILD_NOTHING})
+if (${BUILD_NOTHING} AND NOT ${RUFUM_ENABLE_TESTS})
 	set (MSG "At least one option of RUFUM_BUILD_MODULE,")
 	set (MSG "${MSG} RUFUM_BUILD_SHARED, RUFUM_BUILD_STATIC,")
 	set (MSG "${MSG} RUFUM_BUILD_EXECUTABLE must be used")
 	message (FATAL_ERROR ${MSG})
+endif ()
+
+# Only build tests? Notify user about it
+if (${BUILD_NOTHING} AND ${RUFUM_ENABLE_TESTS})
+	set (MSG "With current configuration only tests are going to be built")
+	message (STATUS ${MSG})
 endif ()
 
 # This is a special case when we build static library
@@ -64,6 +71,12 @@ else ()
 	set (MSG "Option RUFUM_BITS must be one of 32, 64 (default)")
 	message (STATUS ${RUFUM_BITS})
 	message (FATAL_ERROR ${MSG})
+endif ()
+
+# We need to enable testing in root CMakeLists.txt
+# Otherwise make test won't be available in root directory
+if (${RUFUM_ENABLE_TESTS})
+	enable_testing ()
 endif ()
 
 # EXTERNAL_DIR is for header files that we are going to install

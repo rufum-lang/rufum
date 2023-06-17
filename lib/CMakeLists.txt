@@ -127,4 +127,8 @@ if (${RUFUM_BUILD_STATIC})
 
 endif ()
 
-add_subdirectory (tests)
+if (${RUFUM_ENABLE_TESTS})
+
+	add_subdirectory (tests)
+
+endif ()
