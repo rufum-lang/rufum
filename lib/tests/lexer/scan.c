@@ -197,18 +197,16 @@ static char *write_lunit_normal(lunit_t *lunit, size_t *size_ptr)
         return NULL;
 
     /*
-      Write the string. Remember, we know how many bytes we need but
-      if we were to add one to size then snprintf would terminate it with
-      NULL byte. Yes, it tells how many bytes it would write excluding
-      the NULL byte but when it writes it will append the NULL byte
-      provided it has enough space. Call to snprintf(buffer, size + 1, ...)
-      will append the NULL byte but snprintf(buffer, size, ...) won't
+      Write the string. Variable size is larger then string we write
+      so we need not worry about buffer overruns
+      The string is going to be null terminated but we will overwrite it
     */
     snprintf(buffer, size, FORMAT_STRING, token_string,
         lunit->line, lunit->column, lunit->lexme->length);
 
     /*
       Manually append lunit->lexme->text
+      This also overwrites null byte (which is good)
     */
     strncpy(&buffer[manual_append_index], lunit->lexme->text,
         lunit->lexme->length);
@@ -267,12 +265,11 @@ static char *write_lunit_hex(lunit_t *lunit, size_t *size_ptr)
         return NULL;
 
     /*
-      Write the string. Remember, we know how many bytes we need but
-      if we were to add one to size then snprintf would terminate it with
-      NULL byte. Yes, it tells how many bytes it would write excluding
-      the NULL byte but when it writes it will append the NULL byte
-      provided it has enough space. Call to snprintf(buffer, size + 1, ...)
-      will append the NULL byte but snprintf(buffer, size, ...) won't
+      Write the string. We need to add one to size because otherwise
+      last character would get trimmed. The string is going to be
+      null terminated but we will ignore the null byte
+      That is we return size + 1 character long string but we report
+      that we returned size character long string
     */
     snprintf(buffer, size + 1, FORMAT_STRING, token_string,
         lunit->line, lunit->column, lunit->lexme->length,
