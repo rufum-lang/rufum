@@ -227,7 +227,7 @@ static char *write_lunit_normal(lunit_t *lunit, size_t *size_ptr)
 */
 #undef FORMAT_STRING
 
-#define FORMAT_STRING "%s: pos=(%zu, %zu), pos=%zu\n | 0x%X (hex)\n"
+#define FORMAT_STRING "%s: pos=(%zu, %zu), len=%zu\n | 0x%X (hex)\n"
 
 static char *write_lunit_hex(lunit_t *lunit, size_t *size_ptr)
 {
