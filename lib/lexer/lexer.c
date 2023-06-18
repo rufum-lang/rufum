@@ -1568,11 +1568,17 @@ static void *state_zero(token_t *token, int c)
         return &state_octal_prefix;
 
     /*
-      Zero forma a hexadecimal prefix
+      Zero forms a hexadecimal prefix
     */
     if (c == 'x')
         return &state_hexadecimal_prefix;
 
+    /*
+      If we just read a character that can form an identifier but that can't
+      form a decimal number then we are dealing with zero with a suffix
+    */
+    if (test_char_decimal_suffix(c))
+        return &state_decimal_int_suffix;
     /*
       It's just zero, zero is a decimal integer
     */
