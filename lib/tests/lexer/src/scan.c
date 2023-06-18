@@ -268,12 +268,67 @@ static char *write_lunit_hex(lunit_t *lunit, size_t *size_ptr)
       Write the string. We need to add one to size because otherwise
       last character would get trimmed. The string is going to be
       null terminated but we will ignore the null byte
-      That is we return size + 1 character long string but we report
-      that we returned size character long string
+      That is we return 'size + 1' character long string but we report
+      that we returned 'size' character long string
     */
     snprintf(buffer, size + 1, FORMAT_STRING, token_string,
         lunit->line, lunit->column, lunit->lexme->length,
         (unsigned int) lunit->lexme->text[0]);
+
+    *size_ptr = size;
+    return buffer;
+}
+
+/*
+  This is here to silence the warnings
+*/
+#undef FORMAT_STRING
+
+#define FORMAT_STRING "%s: pos=(%zu, %zu), len=%zu\n\n"
+
+static char *write_lunit_eol(lunit_t *lunit, size_t *size_ptr)
+{
+    /*
+      Convert token to its string representation
+      Note that token_string is a string literal. We aren't responsible
+      for freeing it. In fact we can't free it. It's in .rodata
+      Rodata is a read only section of the executable
+    */
+    char *token_string;
+
+    token_string = token_to_string(lunit->token);
+    
+    /*
+      Well, this is pretty complex... Let me explain
+      According to C99 when second argument is zero then nothing is printed
+      Instead this call returns numbers of characters it would print if second
+      argument was big enough but NOT counting terminating NULL byte
+      We use this to learn how big buffer we need
+    */
+    size_t size;
+
+    size = snprintf(NULL, 0, FORMAT_STRING, token_string,
+        lunit->line, lunit->column, lunit->lexme->length);
+
+    /*
+      Allocate buffer big enough to store the result string
+    */
+    char *buffer;
+
+    buffer = malloc(size + 1);
+
+    if (buffer == NULL)
+        return NULL;
+
+    /*
+      Write the string. We need to add one to size because otherwise
+      last character would get trimmed. The string is going to be
+      null terminated but we will ignore the null byte
+      That is we return 'size + 1' character long string but we report
+      that we returned 'size' character long string
+    */
+    snprintf(buffer, size + 1, FORMAT_STRING, token_string,
+        lunit->line, lunit->column, lunit->lexme->length);
 
     *size_ptr = size;
     return buffer;
@@ -351,7 +406,7 @@ static lstring_t *lunit_to_lstring(lunit_t *lunit)
     }
     else if (lunit->token == TOK_EOL)
     {
-        string = write_lunit_hex(lunit, &size);
+        string = write_lunit_eol(lunit, &size);
     }
     else if (lunit->token == TOK_UNKNOWN)
     {
