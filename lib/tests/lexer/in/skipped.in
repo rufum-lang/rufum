@@ -1,0 +1,41 @@
+TOK_EOL: pos=(1, 20), len=1
+
+TOK_EOL: pos=(4, 2), len=1
+
+TOK_EOL: pos=(5, 1), len=1
+
+TOK_EOL: pos=(11, 2), len=1
+
+TOK_EOL: pos=(12, 1), len=1
+
+TOK_LOWERCASE: pos=(13, 1), len=10
+ | identifier
+TOK_EOL: pos=(13, 27), len=1
+
+TOK_EOL: pos=(14, 1), len=1
+
+TOK_UPPERCASE: pos=(15, 1), len=5
+ | Hello
+TOK_LOWERCASE: pos=(17, 3), len=5
+ | world
+TOK_EOL: pos=(17, 8), len=1
+
+TOK_EOL: pos=(18, 1), len=1
+
+TOK_LOWERCASE: pos=(19, 1), len=3
+ | ok?
+TOK_LOWERCASE: pos=(20, 2), len=6
+ | notOk?
+TOK_EOL: pos=(20, 8), len=1
+
+TOK_LOWERCASE: pos=(21, 3), len=4
+ | isnt
+TOK_LOWERCASE: pos=(22, 5), len=2
+ | it
+TOK_LOWERCASE: pos=(23, 5), len=3
+ | one
+TOK_LOWERCASE: pos=(24, 5), len=4
+ | line
+TOK_EOL: pos=(24, 9), len=1
+
+TOK_END

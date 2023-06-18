@@ -1,0 +1,24 @@
+# This is a comment
+{
+  This is a multiline comment
+}
+
+{
+  This is another multilne comment
+  {
+    With another comment nested within
+  }
+}
+
+identifier # And a comment
+
+Hello {
+  These two identifiers should appear as if they were on one line
+} world
+
+ok?
+\notOk?
+  isnt
+  \ it
+  \ one
+  \ line
