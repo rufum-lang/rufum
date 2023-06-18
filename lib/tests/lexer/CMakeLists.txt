@@ -35,3 +35,6 @@ register_lexer_test (newline)
 
 # This tests TOK_DEC_* tokens
 register_lexer_test (decimal)
+
+# This tests TOK_BIN_* tokens
+register_lexer_test (binary)

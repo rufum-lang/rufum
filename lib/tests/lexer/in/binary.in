@@ -1,0 +1,115 @@
+TOK_EOL: pos=(1, 11), len=1
+
+TOK_BIN_INT: pos=(2, 1), len=3
+ | 0b1
+TOK_EOL: pos=(2, 4), len=1
+
+TOK_BIN_INT_SUF: pos=(3, 1), len=4
+ | 0b14
+TOK_EOL: pos=(3, 5), len=1
+
+TOK_BIN_INT_SUF: pos=(4, 1), len=8
+ | 0b1hello
+TOK_EOL: pos=(4, 9), len=1
+
+TOK_BIN_INT_SUF: pos=(5, 1), len=4
+ | 0b1_
+TOK_EOL: pos=(5, 5), len=1
+
+TOK_BIN_INT_SUF: pos=(6, 1), len=4
+ | 0b1?
+TOK_EOL: pos=(6, 5), len=1
+
+TOK_BIN_INT_COM: pos=(7, 1), len=4
+ | 0b1,
+TOK_EOL: pos=(7, 5), len=1
+
+TOK_BIN_INT_DOT: pos=(8, 1), len=4
+ | 0b1.
+TOK_EOL: pos=(8, 5), len=1
+
+TOK_BIN_INT_SEQ: pos=(9, 1), len=5
+ | 0b1,,
+TOK_BIN_INT_SEQ: pos=(9, 7), len=6
+ | 0b1,,1
+TOK_BIN_INT_SEQ: pos=(9, 14), len=6
+ | 0b1,,2
+TOK_EOL: pos=(9, 20), len=1
+
+TOK_BIN_INT_SEQ: pos=(10, 1), len=5
+ | 0b1,.
+TOK_BIN_INT_SEQ: pos=(10, 7), len=6
+ | 0b1,.1
+TOK_BIN_INT_SEQ: pos=(10, 14), len=6
+ | 0b1,.2
+TOK_EOL: pos=(10, 20), len=1
+
+TOK_BIN_INT_SEQ: pos=(11, 1), len=5
+ | 0b1..
+TOK_BIN_INT_SEQ: pos=(11, 7), len=6
+ | 0b1..1
+TOK_BIN_INT_SEQ: pos=(11, 14), len=6
+ | 0b1..2
+TOK_EOL: pos=(11, 20), len=1
+
+TOK_BIN_INT_SEQ: pos=(12, 1), len=5
+ | 0b1.,
+TOK_BIN_INT_SEQ: pos=(12, 7), len=6
+ | 0b1.,1
+TOK_BIN_INT_SEQ: pos=(12, 14), len=6
+ | 0b1.,2
+TOK_EOL: pos=(12, 20), len=1
+
+TOK_EOL: pos=(13, 1), len=1
+
+TOK_EOL: pos=(14, 9), len=1
+
+TOK_BIN_FLT: pos=(15, 1), len=5
+ | 0b0.1
+TOK_EOL: pos=(15, 6), len=1
+
+TOK_BIN_FLT_SUF: pos=(16, 1), len=6
+ | 0b0.14
+TOK_EOL: pos=(16, 7), len=1
+
+TOK_BIN_FLT_SUF: pos=(17, 1), len=10
+ | 0b0.1hello
+TOK_EOL: pos=(17, 11), len=1
+
+TOK_BIN_FLT_SUF: pos=(18, 1), len=6
+ | 0b0.1_
+TOK_EOL: pos=(18, 7), len=1
+
+TOK_BIN_FLT_SUF: pos=(19, 1), len=6
+ | 0b0.1?
+TOK_EOL: pos=(19, 7), len=1
+
+TOK_BIN_FLT_COM: pos=(20, 1), len=6
+ | 0b0.1,
+TOK_EOL: pos=(20, 7), len=1
+
+TOK_BIN_FLT_SEQ: pos=(21, 1), len=7
+ | 0b0.1,,
+TOK_BIN_FLT_SEQ: pos=(21, 9), len=8
+ | 0b0.1,,1
+TOK_BIN_FLT_SEQ: pos=(21, 18), len=8
+ | 0b0.1,,2
+TOK_EOL: pos=(21, 26), len=1
+
+TOK_BIN_FLT_SEQ: pos=(22, 1), len=7
+ | 0b0.1,.
+TOK_BIN_FLT_SEQ: pos=(22, 9), len=8
+ | 0b0.1,.1
+TOK_BIN_FLT_SEQ: pos=(22, 18), len=8
+ | 0b0.1,.2
+TOK_EOL: pos=(22, 26), len=1
+
+TOK_BIN_FLT_DOT: pos=(23, 1), len=6
+ | 0b0.1.
+TOK_BIN_FLT_DOT: pos=(23, 8), len=7
+ | 0b0.1.1
+TOK_BIN_FLT_DOT: pos=(23, 16), len=7
+ | 0b0.1.2
+TOK_EOL: pos=(23, 23), len=1
+
+TOK_END
