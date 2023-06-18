@@ -1,0 +1,135 @@
+TOK_EOL: pos=(1, 11), len=1
+
+TOK_HEX_INT: pos=(2, 1), len=3
+ | 0x1
+TOK_EOL: pos=(2, 4), len=1
+
+TOK_HEX_INT: pos=(3, 1), len=3
+ | 0xf
+TOK_EOL: pos=(3, 4), len=1
+
+TOK_HEX_INT: pos=(4, 1), len=3
+ | 0xF
+TOK_EOL: pos=(4, 4), len=1
+
+TOK_HEX_INT_SUF: pos=(5, 1), len=4
+ | 0x5g
+TOK_EOL: pos=(5, 5), len=1
+
+TOK_HEX_INT_SUF: pos=(6, 1), len=8
+ | 0x1hello
+TOK_EOL: pos=(6, 9), len=1
+
+TOK_HEX_INT_SUF: pos=(7, 1), len=4
+ | 0x1_
+TOK_EOL: pos=(7, 5), len=1
+
+TOK_HEX_INT_SUF: pos=(8, 1), len=4
+ | 0x1?
+TOK_EOL: pos=(8, 5), len=1
+
+TOK_HEX_INT_COM: pos=(9, 1), len=4
+ | 0x1,
+TOK_EOL: pos=(9, 5), len=1
+
+TOK_HEX_INT_DOT: pos=(10, 1), len=4
+ | 0x1.
+TOK_EOL: pos=(10, 5), len=1
+
+TOK_HEX_INT_SEQ: pos=(11, 1), len=5
+ | 0x1,,
+TOK_HEX_INT_SEQ: pos=(11, 7), len=6
+ | 0x1,,1
+TOK_HEX_INT_SEQ: pos=(11, 14), len=6
+ | 0x1,,g
+TOK_EOL: pos=(11, 20), len=1
+
+TOK_HEX_INT_SEQ: pos=(12, 1), len=5
+ | 0x1,.
+TOK_HEX_INT_SEQ: pos=(12, 7), len=6
+ | 0x1,.1
+TOK_HEX_INT_SEQ: pos=(12, 14), len=6
+ | 0x1,.g
+TOK_EOL: pos=(12, 20), len=1
+
+TOK_HEX_INT_SEQ: pos=(13, 1), len=5
+ | 0x1..
+TOK_HEX_INT_SEQ: pos=(13, 7), len=6
+ | 0x1..1
+TOK_HEX_INT_SEQ: pos=(13, 14), len=6
+ | 0x1..g
+TOK_EOL: pos=(13, 20), len=1
+
+TOK_HEX_INT_SEQ: pos=(14, 1), len=5
+ | 0x1.,
+TOK_HEX_INT_SEQ: pos=(14, 7), len=6
+ | 0x1.,1
+TOK_HEX_INT_SEQ: pos=(14, 14), len=6
+ | 0x1.,g
+TOK_EOL: pos=(14, 20), len=1
+
+TOK_EOL: pos=(15, 1), len=1
+
+TOK_EOL: pos=(16, 9), len=1
+
+TOK_HEX_FLT: pos=(17, 1), len=5
+ | 0x0.1
+TOK_EOL: pos=(17, 6), len=1
+
+TOK_HEX_FLT: pos=(18, 1), len=5
+ | 0x0.f
+TOK_EOL: pos=(18, 6), len=1
+
+TOK_HEX_FLT: pos=(19, 1), len=5
+ | 0x0.F
+TOK_EOL: pos=(19, 6), len=1
+
+TOK_HEX_FLT_SUF: pos=(20, 1), len=6
+ | 0x0.5g
+TOK_EOL: pos=(20, 7), len=1
+
+TOK_HEX_FLT_SUF: pos=(21, 1), len=5
+ | 0x0.g
+TOK_EOL: pos=(21, 6), len=1
+
+TOK_HEX_FLT_SUF: pos=(22, 1), len=10
+ | 0x0.1hello
+TOK_EOL: pos=(22, 11), len=1
+
+TOK_HEX_FLT_SUF: pos=(23, 1), len=6
+ | 0x0.1_
+TOK_EOL: pos=(23, 7), len=1
+
+TOK_HEX_FLT_SUF: pos=(24, 1), len=6
+ | 0x0.1?
+TOK_EOL: pos=(24, 7), len=1
+
+TOK_HEX_FLT_COM: pos=(25, 1), len=6
+ | 0x0.1,
+TOK_EOL: pos=(25, 7), len=1
+
+TOK_HEX_FLT_SEQ: pos=(26, 1), len=7
+ | 0x0.1,,
+TOK_HEX_FLT_SEQ: pos=(26, 9), len=8
+ | 0x0.1,,1
+TOK_HEX_FLT_SEQ: pos=(26, 18), len=8
+ | 0x0.1,,g
+TOK_EOL: pos=(26, 26), len=1
+
+TOK_HEX_FLT_SEQ: pos=(27, 1), len=7
+ | 0x0.1,.
+TOK_HEX_FLT_SEQ: pos=(27, 9), len=8
+ | 0x0.1,.1
+TOK_HEX_FLT_SEQ: pos=(27, 18), len=8
+ | 0x0.1,.g
+TOK_EOL: pos=(27, 26), len=1
+
+TOK_HEX_FLT_DOT: pos=(28, 1), len=6
+ | 0x0.1.
+TOK_HEX_FLT_DOT: pos=(28, 9), len=7
+ | 0x0.1.1
+TOK_HEX_FLT_DOT: pos=(28, 18), len=7
+ | 0x0.1.g
+TOK_EOL: pos=(28, 25), len=1
+
+TOK_END
