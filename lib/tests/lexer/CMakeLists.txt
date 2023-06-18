@@ -38,3 +38,6 @@ register_lexer_test (decimal)
 
 # This tests TOK_BIN_* tokens
 register_lexer_test (binary)
+
+# This tests TOK_OCT_* tokens
+register_lexer_test (octal)
