@@ -1,0 +1,217 @@
+TOK_EOL: pos=(1, 27), len=1
+
+TOK_DEC_INT: pos=(2, 1), len=1
+ | 0
+TOK_EOL: pos=(2, 2), len=1
+
+TOK_DEC_INT_SUF: pos=(3, 1), len=2
+ | 0b
+TOK_EOL: pos=(3, 3), len=1
+
+TOK_DEC_INT_SUF: pos=(4, 1), len=2
+ | 0o
+TOK_EOL: pos=(4, 3), len=1
+
+TOK_DEC_INT_SUF: pos=(5, 1), len=2
+ | 0x
+TOK_EOL: pos=(5, 3), len=1
+
+TOK_DEC_INT_SUF: pos=(6, 1), len=6
+ | 0hello
+TOK_EOL: pos=(6, 7), len=1
+
+TOK_DEC_INT_SUF: pos=(7, 1), len=2
+ | 0?
+TOK_EOL: pos=(7, 3), len=1
+
+TOK_DEC_INT_SUF: pos=(8, 1), len=2
+ | 0_
+TOK_EOL: pos=(8, 3), len=1
+
+TOK_DEC_INT_COM: pos=(9, 1), len=2
+ | 0,
+TOK_EOL: pos=(9, 3), len=1
+
+TOK_DEC_INT_DOT: pos=(10, 1), len=2
+ | 0.
+TOK_EOL: pos=(10, 3), len=1
+
+TOK_DEC_INT_SEQ: pos=(11, 1), len=3
+ | 0,,
+TOK_DEC_INT_SEQ: pos=(11, 5), len=4
+ | 0,,0
+TOK_DEC_INT_SEQ: pos=(11, 10), len=4
+ | 0,,a
+TOK_EOL: pos=(11, 14), len=1
+
+TOK_DEC_INT_SEQ: pos=(12, 1), len=3
+ | 0,.
+TOK_DEC_INT_SEQ: pos=(12, 5), len=4
+ | 0,.0
+TOK_DEC_INT_SEQ: pos=(12, 10), len=4
+ | 0,.a
+TOK_EOL: pos=(12, 15), len=1
+
+TOK_DEC_INT_SEQ: pos=(13, 1), len=3
+ | 0..
+TOK_DEC_INT_SEQ: pos=(13, 5), len=4
+ | 0..0
+TOK_DEC_INT_SEQ: pos=(13, 10), len=4
+ | 0..a
+TOK_EOL: pos=(13, 14), len=1
+
+TOK_DEC_INT_SEQ: pos=(14, 1), len=3
+ | 0.,
+TOK_DEC_INT_SEQ: pos=(14, 5), len=4
+ | 0.,0
+TOK_DEC_INT_SEQ: pos=(14, 10), len=4
+ | 0.,a
+TOK_EOL: pos=(14, 14), len=1
+
+TOK_EOL: pos=(15, 1), len=1
+
+TOK_EOL: pos=(16, 21), len=1
+
+TOK_DEC_INT: pos=(17, 1), len=2
+ | 12
+TOK_EOL: pos=(17, 3), len=1
+
+TOK_DEC_INT_COM: pos=(18, 1), len=3
+ | 12,
+TOK_EOL: pos=(18, 4), len=1
+
+TOK_DEC_INT_DOT: pos=(19, 1), len=3
+ | 12.
+TOK_EOL: pos=(19, 4), len=1
+
+TOK_DEC_INT_SUF: pos=(20, 1), len=7
+ | 12hello
+TOK_EOL: pos=(20, 8), len=1
+
+TOK_DEC_INT_SUF: pos=(21, 1), len=3
+ | 12?
+TOK_EOL: pos=(21, 4), len=1
+
+TOK_DEC_INT_SUF: pos=(22, 1), len=3
+ | 12_
+TOK_EOL: pos=(22, 4), len=1
+
+TOK_DEC_INT_SEQ: pos=(23, 1), len=4
+ | 12,,
+TOK_DEC_INT_SEQ: pos=(23, 6), len=5
+ | 12,,0
+TOK_DEC_INT_SEQ: pos=(23, 12), len=5
+ | 12,,a
+TOK_EOL: pos=(23, 18), len=1
+
+TOK_DEC_INT_SEQ: pos=(24, 1), len=4
+ | 12,.
+TOK_DEC_INT_SEQ: pos=(24, 6), len=5
+ | 12,.0
+TOK_DEC_INT_SEQ: pos=(24, 12), len=5
+ | 12,.a
+TOK_EOL: pos=(24, 17), len=1
+
+TOK_DEC_INT_SEQ: pos=(25, 1), len=4
+ | 12..
+TOK_DEC_INT_SEQ: pos=(25, 6), len=5
+ | 12..0
+TOK_DEC_INT_SEQ: pos=(25, 12), len=5
+ | 12..a
+TOK_EOL: pos=(25, 17), len=1
+
+TOK_DEC_INT_SEQ: pos=(26, 1), len=4
+ | 12.,
+TOK_DEC_INT_SEQ: pos=(26, 6), len=5
+ | 12.,0
+TOK_DEC_INT_SEQ: pos=(26, 12), len=5
+ | 12.,a
+TOK_EOL: pos=(26, 17), len=1
+
+TOK_EOL: pos=(27, 1), len=1
+
+TOK_EOL: pos=(28, 25), len=1
+
+TOK_DEC_FLT: pos=(29, 1), len=4
+ | 0.16
+TOK_EOL: pos=(29, 5), len=1
+
+TOK_DEC_FLT_SUF: pos=(30, 1), len=9
+ | 0.16hello
+TOK_EOL: pos=(30, 10), len=1
+
+TOK_DEC_FLT_SUF: pos=(31, 1), len=5
+ | 0.16?
+TOK_EOL: pos=(31, 6), len=1
+
+TOK_DEC_FLT_SUF: pos=(32, 1), len=5
+ | 0.16_
+TOK_EOL: pos=(32, 6), len=1
+
+TOK_DEC_FLT_COM: pos=(33, 1), len=5
+ | 0.16,
+TOK_EOL: pos=(33, 6), len=1
+
+TOK_DEC_FLT_SEQ: pos=(34, 1), len=6
+ | 0.16,,
+TOK_DEC_FLT_SEQ: pos=(34, 11), len=7
+ | 0.16,,0
+TOK_DEC_FLT_SEQ: pos=(34, 20), len=7
+ | 0.16,,a
+TOK_EOL: pos=(34, 27), len=1
+
+TOK_DEC_FLT_SEQ: pos=(35, 1), len=6
+ | 0.16,.
+TOK_DEC_FLT_SEQ: pos=(35, 11), len=7
+ | 0.16,.0
+TOK_DEC_FLT_SEQ: pos=(35, 20), len=7
+ | 0.16,.a
+TOK_EOL: pos=(35, 27), len=1
+
+TOK_DEC_FLT_DOT: pos=(36, 1), len=5
+ | 0.16.
+TOK_DEC_FLT_DOT: pos=(36, 11), len=6
+ | 0.16.0
+TOK_DEC_FLT_DOT: pos=(36, 20), len=6
+ | 0.16.a
+TOK_EOL: pos=(36, 26), len=1
+
+TOK_EOL: pos=(37, 1), len=1
+
+TOK_EOL: pos=(38, 19), len=1
+
+TOK_DEC_FLT: pos=(39, 1), len=6
+ | 3.1415
+TOK_EOL: pos=(39, 7), len=1
+
+TOK_DEC_FLT_SUF: pos=(40, 1), len=11
+ | 3.1415hello
+TOK_DEC_FLT_SUF: pos=(40, 13), len=7
+ | 3.1415?
+TOK_DEC_FLT_SUF: pos=(40, 24), len=7
+ | 3.1415_
+TOK_EOL: pos=(40, 31), len=1
+
+TOK_DEC_FLT_COM: pos=(41, 1), len=7
+ | 3.1415,
+TOK_EOL: pos=(41, 8), len=1
+
+TOK_DEC_FLT_SEQ: pos=(42, 1), len=8
+ | 3.1415,,
+TOK_DEC_FLT_SEQ: pos=(42, 13), len=9
+ | 3.1415,,0
+TOK_DEC_FLT_SEQ: pos=(42, 24), len=9
+ | 3.1415,,a
+TOK_EOL: pos=(42, 33), len=1
+
+TOK_DEC_FLT_DOT: pos=(43, 1), len=7
+ | 3.1415.
+TOK_DEC_FLT_DOT: pos=(43, 13), len=8
+ | 3.1415.0
+TOK_DEC_FLT_DOT: pos=(43, 24), len=8
+ | 3.1415.a
+TOK_EOL: pos=(43, 32), len=1
+
+TOK_EOL: pos=(44, 1), len=1
+
+TOK_END

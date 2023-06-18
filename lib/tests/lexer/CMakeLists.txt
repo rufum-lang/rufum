@@ -32,3 +32,6 @@ register_lexer_test (empty)
 
 # This tests TOK_EOL token
 register_lexer_test (newline)
+
+# This tests TOK_DEC_* tokens
+register_lexer_test (decimal)
