@@ -33,6 +33,9 @@ register_lexer_test (empty)
 # This tests TOK_EOL token
 register_lexer_test (newline)
 
+# This tests TOK_LOWERCASE and TOK_UPPERCASE tokens
+register_lexer_test (identifier)
+
 # This tests comments and EOL escaping (they aren't tokens)
 # In fact thay are invisible to the caller of rufum_scan
 register_lexer_test (skipped)

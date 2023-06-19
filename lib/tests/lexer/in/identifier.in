@@ -1,0 +1,59 @@
+TOK_LOWERCASE: pos=(1, 1), len=1
+ | h
+TOK_EOL: pos=(1, 2), len=1
+
+TOK_LOWERCASE: pos=(2, 1), len=5
+ | hello
+TOK_EOL: pos=(2, 6), len=1
+
+TOK_LOWERCASE: pos=(3, 1), len=10
+ | helloWorld
+TOK_EOL: pos=(3, 11), len=1
+
+TOK_LOWERCASE: pos=(4, 1), len=6
+ | hello_
+TOK_EOL: pos=(4, 7), len=1
+
+TOK_LOWERCASE: pos=(5, 1), len=11
+ | hello_world
+TOK_EOL: pos=(5, 12), len=1
+
+TOK_LOWERCASE: pos=(6, 1), len=6
+ | hello?
+TOK_EOL: pos=(6, 7), len=1
+
+TOK_LOWERCASE: pos=(7, 1), len=5
+ | h???o
+TOK_EOL: pos=(7, 6), len=1
+
+TOK_EOL: pos=(8, 1), len=1
+
+TOK_UPPERCASE: pos=(9, 1), len=1
+ | H
+TOK_EOL: pos=(9, 2), len=1
+
+TOK_UPPERCASE: pos=(10, 1), len=5
+ | Hello
+TOK_EOL: pos=(10, 6), len=1
+
+TOK_UPPERCASE: pos=(11, 1), len=10
+ | HelloWorld
+TOK_EOL: pos=(11, 11), len=1
+
+TOK_UPPERCASE: pos=(12, 1), len=6
+ | Hello_
+TOK_EOL: pos=(12, 7), len=1
+
+TOK_UPPERCASE: pos=(13, 1), len=11
+ | Hello_World
+TOK_EOL: pos=(13, 12), len=1
+
+TOK_UPPERCASE: pos=(14, 1), len=6
+ | Hello?
+TOK_EOL: pos=(14, 7), len=1
+
+TOK_UPPERCASE: pos=(15, 1), len=5
+ | H???o
+TOK_EOL: pos=(15, 6), len=1
+
+TOK_END
